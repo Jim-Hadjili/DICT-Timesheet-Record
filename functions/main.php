@@ -8,21 +8,25 @@ date_default_timezone_set('Asia/Manila');
 include './connection/conn.php';
 include './face_config.php'; // Include the configuration file
 
-// Check if required directories exist, if not redirect to create them
+// Check if required directories exist, if not create them
 $required_dirs = ['functions/face_images/', 'functions/temp_faces/'];
 $missing_dirs = false;
+$failed_dirs = [];
 
 foreach ($required_dirs as $dir) {
     if (!file_exists($dir)) {
-        $missing_dirs = true;
-        break;
+        // Try to create the directory with full permissions
+        if (!mkdir($dir, 0777, true)) {
+            $missing_dirs = true;
+            $failed_dirs[] = $dir;
+        }
     }
 }
 
 if ($missing_dirs) {
-    // Redirect to directory creation script
-    header("Location: create_directories.php");
-    exit();
+    // Log the error and set a message, but don't redirect
+    error_log("Failed to create required directories: " . implode(", ", $failed_dirs));
+    $message = "Warning: Some required directories could not be created. Face recognition may not work properly.";
 }
 
 // Initialize message variable
@@ -424,7 +428,8 @@ if (isset($_POST['face_recognition']) && isset($_POST['image_data'])) {
                     'message' => 'Face recognized successfully!',
                     'intern_id' => $intern_id,
                     'intern_name' => $intern_name,
-                    'similarity' => round($highest_similarity, 2) . '%',
+                    'similarity' => round($highest_similarity, 2),
+                    'similarityText' => round($highest_similarity, 2) . '%',
                     'needsConfirmation' => true, // Flag to show confirmation dialog
                     'debug' => $debug_info
                 );
@@ -487,10 +492,14 @@ if (isset($_POST['face_recognition']) && isset($_POST['image_data'])) {
 // Process face recognition confirmation
 if (isset($_POST['confirm_recognition'])) {
     $confirmation = $_POST['confirmation'];
+    $intern_id = isset($_POST['intern_id']) ? $_POST['intern_id'] : null;
     
+    // Use either session data or posted intern_id
     if (isset($_SESSION['recognized_face'])) {
         $recognized_face = $_SESSION['recognized_face'];
-        $intern_id = $recognized_face['intern_id'];
+        if (!$intern_id) {
+            $intern_id = $recognized_face['intern_id'];
+        }
         
         if ($confirmation === 'yes') {
             // User confirmed it's them, proceed with time logging
@@ -499,8 +508,10 @@ if (isset($_POST['confirm_recognition'])) {
             $current_minute = (int)date('i');
             
             // Check if the intern already has a record for today
-            $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id");
+            $today = date('Y-m-d');
+            $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
             $check_stmt->bindParam(':intern_id', $intern_id);
+            $check_stmt->bindParam(':today', $today);
             $check_stmt->execute();
             
             $action_taken = '';
@@ -591,23 +602,28 @@ if (isset($_POST['confirm_recognition'])) {
                     }
                 }
             } else {
-                // Create a new record for today
-                // Get required hours
-                $required_hours_stmt = $conn->prepare("SELECT Required_Hours_Rendered FROM interns WHERE Intern_id = :intern_id");
-                $required_hours_stmt->bindParam(':intern_id', $intern_id);
-                $required_hours_stmt->execute();
-                $required_hours_data = $required_hours_stmt->fetch(PDO::FETCH_ASSOC);
-                $required_hours = $required_hours_data['Required_Hours_Rendered'];
+                // Always create a new record for today, regardless of previous days
+                $today = date('Y-m-d');
+                // Get intern name and required hours
+                $name_stmt = $conn->prepare("SELECT Intern_Name, Required_Hours_Rendered FROM interns WHERE Intern_id = :intern_id");
+                $name_stmt->bindParam(':intern_id', $intern_id);
+                $name_stmt->execute();
+                $intern_data = $name_stmt->fetch(PDO::FETCH_ASSOC);
+                $intern_name = $intern_data['Intern_Name'];
+                $required_hours = $intern_data['Required_Hours_Rendered'];
+
+                // Make sure we're creating a new record for today
+                $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered, created_at) 
+                                             VALUES (:intern_id, :intern_name, :time_value, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', :today)");
                 
                 // Determine if it's morning or afternoon
                 if ($current_hour < 12) {
                     // Morning time-in
-                    $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered) 
-                                                 VALUES (:intern_id, :intern_name, :am_timein, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00')");
                     $insert_stmt->bindParam(':intern_id', $intern_id);
                     $insert_stmt->bindParam(':intern_name', $recognized_face['intern_name']);
-                    $insert_stmt->bindParam(':am_timein', $current_time);
+                    $insert_stmt->bindParam(':time_value', $current_time);
                     $insert_stmt->bindParam(':required_hours', $required_hours);
+                    $insert_stmt->bindParam(':today', $today);
                     $insert_stmt->execute();
                     $action_taken = "Morning time-in recorded at " . formatTime($current_time);
                 } else {
@@ -622,12 +638,11 @@ if (isset($_POST['confirm_recognition'])) {
                         $display_time = formatTime($current_time);
                     }
                     
-                    $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered) 
-                                                 VALUES (:intern_id, :intern_name, '00:00:00', '00:00:00', :pm_timein, '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00')");
                     $insert_stmt->bindParam(':intern_id', $intern_id);
                     $insert_stmt->bindParam(':intern_name', $recognized_face['intern_name']);
-                    $insert_stmt->bindParam(':pm_timein', $pm_time);
+                    $insert_stmt->bindParam(':time_value', $pm_time);
                     $insert_stmt->bindParam(':required_hours', $required_hours);
+                    $insert_stmt->bindParam(':today', $today);
                     $insert_stmt->execute();
                     $action_taken = "Afternoon time-in recorded at " . $display_time;
                 }
@@ -671,13 +686,15 @@ if (!empty($selected_intern_id)) {
     $intern_details = $intern_details_stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($intern_details) {
-        // Initialize timesheet statement for the selected intern
+        // Initialize timesheet statement for the selected intern for today
+        $today = date('Y-m-d');
         $timesheet_stmt = $conn->prepare("SELECT t.*, i.Intern_School as intern_school, i.Required_Hours_Rendered as required_hours, DATE(NOW()) as render_date 
                                          FROM timesheet t 
                                          JOIN interns i ON t.intern_id = i.Intern_id 
-                                         WHERE t.intern_id = :intern_id 
-                                         ORDER BY t.intern_id DESC");
+                                         WHERE t.intern_id = :intern_id AND DATE(t.created_at) = :today
+                                         ORDER BY t.created_at DESC");
         $timesheet_stmt->bindParam(':intern_id', $selected_intern_id);
+        $timesheet_stmt->bindParam(':today', $today);
         $timesheet_stmt->execute();
         
         // Get the timesheet data
@@ -709,9 +726,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $current_hour = (int)date('H');
         $current_minute = (int)date('i');
         
-        // Check if the intern already has a record for today
-        $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id");
+        // Check if the intern already has a record for TODAY specifically
+        $today = date('Y-m-d');
+        $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
         $check_stmt->bindParam(':intern_id', $intern_id);
+        $check_stmt->bindParam(':today', $today);
         $check_stmt->execute();
         
         if ($check_stmt->rowCount() > 0) {
@@ -752,7 +771,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } else {
-            // Create a new record for today
+            // Always create a new record for today, regardless of previous days
+            $today = date('Y-m-d');
             // Get intern name and required hours
             $name_stmt = $conn->prepare("SELECT Intern_Name, Required_Hours_Rendered FROM interns WHERE Intern_id = :intern_id");
             $name_stmt->bindParam(':intern_id', $intern_id);
@@ -760,16 +780,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $intern_data = $name_stmt->fetch(PDO::FETCH_ASSOC);
             $intern_name = $intern_data['Intern_Name'];
             $required_hours = $intern_data['Required_Hours_Rendered'];
+
+            // Make sure we're creating a new record for today
+            $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered, created_at) 
+                                             VALUES (:intern_id, :intern_name, :time_value, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', :today)");
             
             // Determine if it's morning or afternoon
             if ($current_hour < 12) {
                 // Morning time-in
-                $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered) 
-                                             VALUES (:intern_id, :intern_name, :am_timein, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00')");
                 $insert_stmt->bindParam(':intern_id', $intern_id);
                 $insert_stmt->bindParam(':intern_name', $intern_name);
-                $insert_stmt->bindParam(':am_timein', $current_time);
+                $insert_stmt->bindParam(':time_value', $current_time);
                 $insert_stmt->bindParam(':required_hours', $required_hours);
+                $insert_stmt->bindParam(':today', $today);
                 $insert_stmt->execute();
                 $_SESSION['message'] = "Morning time-in recorded successfully at " . formatTime($current_time);
             } else {
@@ -784,12 +807,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $display_time = formatTime($current_time);
                 }
                 
-                $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered) 
-                                             VALUES (:intern_id, :intern_name, '00:00:00', '00:00:00', :pm_timein, '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00')");
                 $insert_stmt->bindParam(':intern_id', $intern_id);
                 $insert_stmt->bindParam(':intern_name', $intern_name);
-                $insert_stmt->bindParam(':pm_timein', $pm_time);
+                $insert_stmt->bindParam(':time_value', $pm_time);
                 $insert_stmt->bindParam(':required_hours', $required_hours);
+                $insert_stmt->bindParam(':today', $today);
                 $insert_stmt->execute();
                 $_SESSION['message'] = "Afternoon time-in recorded successfully at " . $display_time;
             }
@@ -808,8 +830,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $current_minute = (int)date('i');
         
         // Check if the intern has a record for today
-        $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id");
+        $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
         $check_stmt->bindParam(':intern_id', $intern_id);
+        $check_stmt->bindParam(':today', $today);
         $check_stmt->execute();
         
         if ($check_stmt->rowCount() > 0) {
