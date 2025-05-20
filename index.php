@@ -699,6 +699,7 @@ try {
         ?>
     </div>
 
+<<<<<<< HEAD
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal" class="fixed inset-0 z-50 hidden">
         <!-- Modal Overlay -->
@@ -765,6 +766,10 @@ try {
         </div>
     </div>
     
+=======
+    <?php include './components/indexDeleteModal.php'; ?>
+
+>>>>>>> 7b7a99b0d29959eb26f4d7a80481bc44cf446f4e
     <script src="./assets/js/face-recognition.js"></script>
     <script src="./assets/js/index.js"></script>
 </body>
