@@ -5,33 +5,41 @@ document.addEventListener("DOMContentLoaded", function () {
     const closeBtn = document.getElementById("close-about-btn");
     const modalContainer = aboutModal.querySelector(".modal-container");
 
+    let isClosing = false;
+
     function openModal() {
+        isClosing = false;
         aboutModal.classList.remove("hidden");
         modalContainer.classList.remove("about-modal-animate-out");
         modalContainer.classList.add("about-modal-animate-in");
     }
 
     function closeModal() {
+        if (isClosing) return; // Prevent multiple triggers
+        isClosing = true;
         modalContainer.classList.remove("about-modal-animate-in");
         modalContainer.classList.add("about-modal-animate-out");
-        // Wait for animation to finish before hiding
-        modalContainer.addEventListener("animationend", function handler() {
-            aboutModal.classList.add("hidden");
-            modalContainer.removeEventListener("animationend", handler);
-        });
     }
+
+    // Only hide modal after animation ends
+    modalContainer.addEventListener("animationend", function handler(e) {
+        if (modalContainer.classList.contains("about-modal-animate-out")) {
+            aboutModal.classList.add("hidden");
+            isClosing = false;
+        }
+    });
 
     aboutBtn.addEventListener("click", openModal);
     closeBtn.addEventListener("click", closeModal);
 
-    // Optional: close when clicking outside modal
+    // Close when clicking outside modal content
     aboutModal.addEventListener("click", function (e) {
         if (e.target === aboutModal || e.target.classList.contains("modal-overlay")) {
             closeModal();
         }
     });
 
-    // Optional: close with Escape key
+    // Close with Escape key
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && !aboutModal.classList.contains("hidden")) {
             closeModal();

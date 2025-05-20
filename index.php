@@ -286,7 +286,7 @@ try {
         </div>
     </div>
 
-    <div class="container mx-auto py-8">
+    <div class="container mx-auto px-12 py-8">
         <!-- Header with Logo -->
         <div class="mb-10 bg-white rounded-xl shadow-md p-6 hover-card">
             <div class="flex flex-col md:flex-row items-center justify-center md:justify-between">
