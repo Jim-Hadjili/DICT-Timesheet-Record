@@ -202,20 +202,6 @@ $dev2_email = "";
                         </div>
                     </div>
                 </div>
-                
-                <!-- Footer Information -->
-                <div class="mt-8 pt-4 border-t border-gray-200 text-center">
-                    <div class="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center mx-auto mb-3 border-4 border-primary-100">
-                        <img src="./assets/images/Dict.png" alt="DICT Logo" class="w-10 h-10 object-contain">
-                    </div>
-                    <p class="text-gray-600 font-medium">
-                        Department of Information and Communications Technology (DICT)
-                    </p>
-                    <p class="text-gray-500 text-sm mt-1">
-                        Internship Program © <?php echo date('Y'); ?> DICT. All rights reserved.
-                    </p>
-                </div>
-            </div>
             
             <!-- Modal Footer -->
             <div class="bg-white px-6 py-3 flex justify-end border-t border-gray-100">
