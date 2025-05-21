@@ -37,11 +37,11 @@ $dev1_linkedin_link = "";
 $dev1_twitter_link = "";
 $dev1_email = "angelosuan20@gmail.com";
 
-$dev2_facebook_link = "https://facebook.com/";
+$dev2_facebook_link = "https://www.facebook.com/jim.hadjili.2025";
 $dev2_github_link = "https://github.com/";
 $dev2_linkedin_link = "https://linkedin.com/in/";
-$dev2_twitter_link = "https://twitter.com/";
-$dev2_email = "";
+$dev2_twitter_link = "";
+$dev2_email = "almujim.hadjili@gmail.com";
 ?>
 <div id="about-us-modal" class="fixed inset-0 z-50 hidden">
     <!-- Modal Overlay -->
@@ -80,8 +80,8 @@ $dev2_email = "";
                                 </div>
                             </div>
                         </div>
-                        <div class="p-6">
-                            <p class="text-gray-600 mb-6">
+                        <div class="p-4">
+                            <p class="text-gray-600 mb-6 text-justify">
                                 John is a dedicated software developer with expertise in web applications and database management. 
                                 He led the development of the DICT Internship Timesheet System, focusing on creating an intuitive 
                                 and efficient platform for tracking intern hours.
@@ -148,8 +148,8 @@ $dev2_email = "";
                                 </div>
                             </div>
                         </div>
-                        <div class="p-6">
-                            <p class="text-gray-600 mb-6">
+                        <div class="p-4">
+                            <p class="text-gray-600 mb-6 text-justify">
                                 Jane oversees the DICT Internship Program, ensuring that interns receive valuable 
                                 experience and mentorship during their time with the department. She worked closely 
                                 with the development team to design a timesheet system that meets the needs of both 
