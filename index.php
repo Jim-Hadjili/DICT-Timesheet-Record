@@ -63,7 +63,6 @@ try {
             </div>
         </div>
 
-
         <!-- Alert Messages -->
         <?php if ($message != ""): ?>
             <div id="alert-message" class="mb-6 rounded-lg p-4 
