@@ -18,6 +18,7 @@
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">AM Hours</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">PM Hours</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Total Hours</th>
+                    <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Overtime Hours</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Notes</th>
                 </tr>
             </thead>
@@ -49,6 +50,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-primary-600">
                                 <?php echo isTimeEmpty($record['day_total_hours']) ? '-' : formatDuration($record['day_total_hours']); ?>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                <?php echo isTimeEmpty($record['overtime_hours']) ? '-' : formatDuration($record['overtime_hours']); ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                 <div class="relative">
@@ -186,5 +190,9 @@
         </div>
     </div>
 </div>
+
+<!-- Overtime Modal -->
+    <?php include './components/overtimeWarningModal.php'; ?>
+    <?php include './components/overtimeConfirmModal.php'; ?>
 
 <script src="./assets/js/timeSheetRecords.js"></script>

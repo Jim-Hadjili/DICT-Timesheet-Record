@@ -175,7 +175,7 @@ try {
                             </select>
                         </div>
 
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                             <?php
                             // Process form submissions only on POST requests
                             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -289,6 +289,10 @@ try {
                             <button type="submit" name="time_out" class="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
                                 <i class="fas fa-sign-out-alt mr-2"></i>
                                 Time Out
+                            </button>
+                            <button type="submit" name="overtime" class="flex items-center justify-center bg-purple-800 hover:bg-purple-900 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
+                                <i class="fas fa-clock mr-2"></i>
+                                Overtime
                             </button>
                             <button type="submit" name="reset_entries" class="flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md" onclick="return confirm('Are you sure you want to reset all entries?')">
                                 <i class="fas fa-redo-alt mr-2"></i>
@@ -454,6 +458,10 @@ try {
 
     <!-- About Us Modal -->
     <?php include './components/AboutUsModal.php'; ?>
+
+    <!-- Overtime Modal -->
+    <?php include './components/overtimeWarningModal.php'; ?>
+    <?php include './components/overtimeConfirmModal.php'; ?>
 
     <!-- Select Intern Modal -->
     <div id="select-intern-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">

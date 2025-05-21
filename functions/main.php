@@ -1192,4 +1192,84 @@ if (!empty($selected_intern_id)) {
     $name_data = $name_stmt->fetch(PDO::FETCH_ASSOC);
     $selected_student_name = $name_data ? $name_data['Intern_Name'] : '';
 }
-?>
+
+if (isset($_POST['overtime']) && !empty($_POST['intern_id'])) {
+    $intern_id = $_POST['intern_id'];
+    $current_time = date('H:i:s');
+    $today = date('Y-m-d');
+
+    // Check if it's after 5 PM
+    if (date('H') >= 17) {
+        $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+        $check_stmt->bindParam(':intern_id', $intern_id);
+        $check_stmt->bindParam(':today', $today);
+        $check_stmt->execute();
+
+        if ($check_stmt->rowCount() > 0) {
+            $timesheet_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Check if PM timeout exists and overtime hasn't started
+            if (!isTimeEmpty($timesheet_data['pm_timeout']) && isTimeEmpty($timesheet_data['overtime_start'])) {
+                // Start overtime
+                $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_start = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+                $update_stmt->bindParam(':time', $current_time);
+                $update_stmt->bindParam(':intern_id', $intern_id);
+                $update_stmt->bindParam(':today', $today);
+                $update_stmt->execute();
+                $_SESSION['message'] = "Overtime started at " . formatTime($current_time);
+            } 
+            // If overtime has started but not ended
+            elseif (!isTimeEmpty($timesheet_data['overtime_start']) && isTimeEmpty($timesheet_data['overtime_end'])) {
+                // End overtime and calculate hours
+                $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_end = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+                $update_stmt->bindParam(':time', $current_time);
+                $update_stmt->bindParam(':intern_id', $intern_id);
+                $update_stmt->bindParam(':today', $today);
+                $update_stmt->execute();
+
+                // Calculate overtime hours
+                $overtime_start = strtotime($timesheet_data['overtime_start']);
+                $overtime_end = strtotime($current_time);
+                $overtime_seconds = $overtime_end - $overtime_start;
+                $overtime_time = gmdate('H:i:s', $overtime_seconds);
+
+                // Update overtime hours
+                $update_hours_stmt = $conn->prepare("UPDATE timesheet SET overtime_hours = :overtime WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+                $update_hours_stmt->bindParam(':overtime', $overtime_time);
+                $update_hours_stmt->bindParam(':intern_id', $intern_id);
+                $update_hours_stmt->bindParam(':today', $today);
+                $update_hours_stmt->execute();
+
+                $_SESSION['message'] = "Overtime ended at " . formatTime($current_time);
+            }
+        }
+    }
+    
+    header("Location: index.php?intern_id=" . $intern_id);
+    exit();
+}
+
+// Modify your total hours calculation to include overtime
+function calculateTotalHours($am_hours, $pm_hours, $overtime_hours) {
+    $total_seconds = 0;
+    
+    // Add AM hours
+    if (!isTimeEmpty($am_hours)) {
+        list($h, $m, $s) = explode(':', $am_hours);
+        $total_seconds += $h * 3600 + $m * 60 + $s;
+    }
+    
+    // Add PM hours
+    if (!isTimeEmpty($pm_hours)) {
+        list($h, $m, $s) = explode(':', $pm_hours);
+        $total_seconds += $h * 3600 + $m * 60 + $s;
+    }
+    
+    // Add overtime hours
+    if (!isTimeEmpty($overtime_hours)) {
+        list($h, $m, $s) = explode(':', $overtime_hours);
+        $total_seconds += $h * 3600 + $m * 60 + $s;
+    }
+    
+    return gmdate('H:i:s', $total_seconds);
+}
