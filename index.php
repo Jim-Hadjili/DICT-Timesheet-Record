@@ -28,7 +28,7 @@ try {
 
 <head>
     <meta charset="UTF-8">
-   
+
     <title>DICT Internship Timesheet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -290,7 +290,7 @@ try {
                                 <i class="fas fa-sign-out-alt mr-2"></i>
                                 Time Out
                             </button>
-                            <button type="submit" name="overtime" class="flex items-center justify-center bg-purple-800 hover:bg-purple-900 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
+                            <button type="submit" name="overtime" class="flex items-center justify-center bg-purple-800 hover:bg-purple-900 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md <?php echo (!empty($timesheet_data) && isOvertimeAvailable($timesheet_data)) ? '' : 'opacity-50 cursor-not-allowed'; ?>" <?php echo (!empty($timesheet_data) && isOvertimeAvailable($timesheet_data)) ? '' : 'disabled'; ?>>
                                 <i class="fas fa-clock mr-2"></i>
                                 Overtime
                             </button>
@@ -371,8 +371,22 @@ try {
                             </div>
                         </div>
 
-                        <!-- Hours Summary -->
-                        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Overtime Status -->
+                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 <?php echo !isTimeEmpty($timesheet_data['overtime_start']) ? 'border-purple-500' : 'border-gray-300'; ?> hover-card">
+                            <h3 class="text-sm font-medium text-gray-600">Overtime Start</h3>
+                            <p class="text-lg font-bold <?php echo !isTimeEmpty($timesheet_data['overtime_start']) ? 'text-purple-600' : 'text-gray-400'; ?>">
+                                <?php echo formatTime($timesheet_data['overtime_start']); ?>
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 <?php echo !isTimeEmpty($timesheet_data['overtime_end']) ? 'border-purple-500' : 'border-gray-300'; ?> hover-card">
+                            <h3 class="text-sm font-medium text-gray-600">Overtime End</h3>
+                            <p class="text-lg font-bold <?php echo !isTimeEmpty($timesheet_data['overtime_end']) ? 'text-purple-600' : 'text-gray-400'; ?>">
+                                <?php echo formatTime($timesheet_data['overtime_end']); ?>
+                            </p>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div class="bg-primary-50 rounded-lg p-4 border-l-4 border-primary-500 hover-card">
                                 <h3 class="text-sm font-medium text-primary-700">Morning Hours</h3>
                                 <p class="text-lg font-bold text-primary-800">
@@ -387,10 +401,29 @@ try {
                                 </p>
                             </div>
 
+                            <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500 hover-card">
+                                <h3 class="text-sm font-medium text-purple-700">Overtime Hours</h3>
+                                <p class="text-lg font-bold text-purple-800">
+                                    <?php echo isTimeEmpty($timesheet_data['overtime_hours']) ? '-' : formatDuration($timesheet_data['overtime_hours']); ?>
+                                </p>
+                            </div>
+
                             <div class="bg-primary-100 rounded-lg p-4 border-l-4 border-primary-600 hover-card">
                                 <h3 class="text-sm font-medium text-primary-800">Total Hours Today</h3>
                                 <p class="text-lg font-bold text-primary-900">
-                                    <?php echo isTimeEmpty($timesheet_data['day_total_hours']) ? '-' : formatDuration($timesheet_data['day_total_hours']); ?>
+                                    <?php 
+                                        // Calculate total including overtime
+                                        $total_hours = '00:00:00';
+                                        if (!empty($timesheet_data)) {
+                                            $am_hours = isTimeEmpty($timesheet_data['am_hours_worked']) ? '00:00:00' : $timesheet_data['am_hours_worked'];
+                                            $pm_hours = isTimeEmpty($timesheet_data['pm_hours_worked']) ? '00:00:00' : $timesheet_data['pm_hours_worked'];
+                                            $overtime = isTimeEmpty($timesheet_data['overtime_hours']) ? '00:00:00' : $timesheet_data['overtime_hours'];
+                                            
+                                            $total_seconds = timeToSeconds($am_hours) + timeToSeconds($pm_hours) + timeToSeconds($overtime);
+                                            $total_hours = secondsToTime($total_seconds);
+                                        }
+                                        echo isTimeEmpty($total_hours) ? '-' : formatDuration($total_hours);
+                                    ?>
                                 </p>
                             </div>
                         </div>
@@ -449,6 +482,29 @@ try {
             </div>
 
         </div>
+        <!-- Add this right before the closing </div> of the container -->
+        <?php
+        // Prepare data for the timesheet records table
+        $records = array();
+        if (!empty($all_timesheet_records)) {
+            foreach ($all_timesheet_records as $record) {
+                $records[] = array(
+                    'date' => isset($record['render_date']) ? formatDate($record['render_date']) : formatDate($record['created_at']),
+                    'intern_name' => $record['intern_name'],
+                    'am_time_in' => formatTime($record['am_timein']),
+                    'am_time_out' => formatTime($record['am_timeOut']),
+                    'pm_time_in' => formatTime($record['pm_timein']),
+                    'pm_time_out' => formatTime($record['pm_timeout']),
+                    'am_hours' => formatDuration($record['am_hours_worked']),
+                    'pm_hours' => formatDuration($record['pm_hours_worked']),
+                    'overtime_hours' => $record['overtime_hours'],
+                    'total_hours' => formatDuration($record['day_total_hours']),
+                    'notes' => isset($record['notes']) ? $record['notes'] : ''
+                );
+            }
+        }
+        ?>
+
         <!-- Timesheet Table -->
         <?php include './includes/timeSheetRecords.php'; ?>
     </div>
@@ -471,42 +527,39 @@ try {
 
     <!-- Select Intern Modal -->
     <div id="select-intern-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity">
-          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
-              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
-                <i class="fas fa-exclamation-triangle text-yellow-600"></i>
-              </div>
-              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Select an Intern
-                </h3>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500">
-                    Please select an intern before attempting to delete.
-                  </p>
-                </div>
-              </div>
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button id="close-select-intern-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-              OK
-            </button>
-          </div>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                Select an Intern
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Please select an intern before attempting to delete.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="close-select-intern-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        OK
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-
-
-    <script src="./assets/js/about_us.js"></script>
-    <script src="./assets/js/face-recognition.js"></script>
-    <script src="./assets/js/index.js"></script>
 </body>
+
+<script src="./assets/js/index.js"></script>
 
 </html>
