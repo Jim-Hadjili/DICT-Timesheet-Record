@@ -123,16 +123,16 @@ try {
                 <div class="bg-white rounded-xl shadow-md p-6 hover-card">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <i class="fas fa-cog text-primary-600 mr-2"></i>
-                        Actions
+                        More Actions
                     </h2>
                     <div class="space-y-3">
                         <!-- Delete Button -->
-                        <button id="delete-button" class="flex items-center justify-between w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out border border-gray-300">
-                            <span class="flex items-center">
-                                <i class="fas fa-trash-alt text-red-600 mr-2"></i>
+                        <button id="delete-button" disabled class="flex items-center justify-between w-full bg-gray-200 hover:bg-gray-300 text-gray-400 font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out border border-gray-300 opacity-60 cursor-not-allowed">
+                            <span class="flex items-center text-left">
+                                <i class="fas fa-trash-alt text-red-300 mr-2"></i>
                                 Delete Selected Intern
                             </span>
-                            <i class="fas fa-shield-alt text-gray-500"></i>
+                            <i class="fas fa-shield-alt text-gray-300"></i>
                         </button>
 
                         <!-- About Us Button -->
@@ -454,6 +454,39 @@ try {
 
     <!-- About Us Modal -->
     <?php include './components/AboutUsModal.php'; ?>
+
+    <!-- Select Intern Modal -->
+    <div id="select-intern-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                  Select an Intern
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500">
+                    Please select an intern before attempting to delete.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button id="close-select-intern-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="./assets/js/about_us.js"></script>
     <script src="./assets/js/face-recognition.js"></script>

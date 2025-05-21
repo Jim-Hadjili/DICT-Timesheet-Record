@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const recognizedAction = document.getElementById("recognized-action");
   const skipRecognition = document.getElementById("skip-recognition");
   const openFaceRecognition = document.getElementById("open-face-recognition");
+  const closeFaceRecognitionBtn = document.getElementById("close-face-modal");
   const internSelect = document.getElementById("intern-select");
 
   let stream = null;
@@ -515,21 +516,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Close face recognition modal
+  if (closeFaceRecognitionBtn) {
+    closeFaceRecognitionBtn.addEventListener("click", () => {
+      faceRecognitionModal.classList.add("hidden");
+    });
+  }
+
   // Hide camera when student is selected
   if (internSelect) {
     internSelect.addEventListener("change", function () {
+      // Stop camera first before any redirects
+      if (faceRecognitionModal) {
+        stopCamera();
+        faceRecognitionModal.classList.add("hidden");
+      }
+
       if (this.value !== "") {
-        if (faceRecognitionModal) {
-          faceRecognitionModal.classList.add("hidden");
-          stopCamera();
-        }
         // Redirect to the page with the selected intern ID
         window.location.href = "index.php?intern_id=" + this.value;
       } else {
-        if (faceRecognitionModal) {
-          faceRecognitionModal.classList.remove("hidden");
-          startCamera();
-        }
         // Redirect to the page without an intern ID to clear the timesheet
         window.location.href = "index.php";
       }

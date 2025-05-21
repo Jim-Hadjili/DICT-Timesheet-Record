@@ -1,5 +1,5 @@
  <!-- Face Recognition Camera Modal -->
- <div id="face-recognition-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 <?php echo !empty($selected_intern_id) ? 'hidden' : ''; ?>">
+ <div id="face-recognition-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70">
      <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-auto overflow-hidden">
          <div class="p-6">
              <div class="text-center mb-4">

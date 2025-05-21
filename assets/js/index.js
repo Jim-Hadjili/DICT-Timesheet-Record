@@ -21,6 +21,26 @@ setInterval(updateTime, 1000);
 // Add event listener for the intern select dropdown
 document.addEventListener("DOMContentLoaded", () => {
   const internSelect = document.getElementById("intern-select");
+  const deleteBtn = document.getElementById("delete-button");
+  const deleteModal = document.getElementById("delete-modal");
+  const closeDeleteBtn = document.getElementById("close-modal");
+  const cancelDeleteBtn = document.getElementById("cancel-delete");
+  const modalContainer = deleteModal.querySelector(".modal-container");
+
+  function openDeleteModal() {
+    deleteModal.classList.remove("hidden");
+    modalContainer.classList.remove("about-modal-animate-out");
+    modalContainer.classList.add("about-modal-animate-in");
+  }
+
+  function closeDeleteModal() {
+    modalContainer.classList.remove("about-modal-animate-in");
+    modalContainer.classList.add("about-modal-animate-out");
+    modalContainer.addEventListener("animationend", function handler() {
+      deleteModal.classList.add("hidden");
+      modalContainer.removeEventListener("animationend", handler);
+    });
+  }
 
   if (internSelect) {
     internSelect.addEventListener("change", function () {
@@ -50,27 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
         notification.style.display = "none";
       }, 500); // 500ms matches the animation duration
     }, 3000); // 3000ms = 3 seconds
-  }
-
-  const deleteBtn = document.getElementById("delete-button");
-  const deleteModal = document.getElementById("delete-modal");
-  const closeDeleteBtn = document.getElementById("close-modal");
-  const cancelDeleteBtn = document.getElementById("cancel-delete");
-  const modalContainer = deleteModal.querySelector(".modal-container");
-
-  function openDeleteModal() {
-    deleteModal.classList.remove("hidden");
-    modalContainer.classList.remove("about-modal-animate-out");
-    modalContainer.classList.add("about-modal-animate-in");
-  }
-
-  function closeDeleteModal() {
-    modalContainer.classList.remove("about-modal-animate-in");
-    modalContainer.classList.add("about-modal-animate-out");
-    modalContainer.addEventListener("animationend", function handler() {
-      deleteModal.classList.add("hidden");
-      modalContainer.removeEventListener("animationend", handler);
-    });
   }
 
   if (deleteBtn) deleteBtn.addEventListener("click", openDeleteModal);
@@ -164,6 +163,49 @@ function setRecognitionStatus(text, type = "default") {
             status.style.background = "";
             break;
     }
+}
+
+if (internSelect && deleteBtn) {
+  function updateDeleteButtonState() {
+    const isEnabled = internSelect.value !== "";
+    deleteBtn.disabled = !isEnabled;
+    
+    // Update button appearance while keeping gray background
+    if (isEnabled) {
+      deleteBtn.classList.remove("text-gray-400", "opacity-60", "cursor-not-allowed");
+      deleteBtn.classList.add("text-gray-700", "hover:bg-gray-300");
+      deleteBtn.querySelector(".fa-trash-alt").classList.remove("text-red-300");
+      deleteBtn.querySelector(".fa-trash-alt").classList.add("text-red-600");
+      deleteBtn.querySelector(".fa-shield-alt").classList.remove("text-gray-300");
+      deleteBtn.querySelector(".fa-shield-alt").classList.add("text-gray-500");
+    } else {
+      deleteBtn.classList.add("text-gray-400", "opacity-60", "cursor-not-allowed");
+      deleteBtn.classList.remove("text-gray-700", "hover:bg-gray-300");
+      deleteBtn.querySelector(".fa-trash-alt").classList.add("text-red-300");
+      deleteBtn.querySelector(".fa-trash-alt").classList.remove("text-red-600");
+      deleteBtn.querySelector(".fa-shield-alt").classList.add("text-gray-300");
+      deleteBtn.querySelector(".fa-shield-alt").classList.remove("text-gray-500");
+    }
+  }
+
+  // Set initial state
+  updateDeleteButtonState();
+
+  // Update on change
+  internSelect.addEventListener("change", updateDeleteButtonState);
+}
+
+// Update the click handler for the delete button
+if (deleteBtn) {
+  deleteBtn.addEventListener("click", function(e) {
+    if (deleteBtn.disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      selectInternModal.classList.remove("hidden");
+    } else {
+      openDeleteModal();
+    }
+  });
 }
 });
 
