@@ -968,15 +968,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Reset entries functionality
     if (isset($_POST['reset_entries']) && !empty($_POST['intern_id'])) {
         $intern_id = $_POST['intern_id'];
-        $today = date('Y-m-d');
-        
-        $reset_stmt = $conn->prepare("UPDATE timesheet SET am_timein = '00:00:00', am_timeOut = '00:00:00', pm_timein = '00:00:00', pm_timeout = '00:00:00', am_hours_worked = '00:00:00', pm_hours_worked = '00:00:00', day_total_hours = '00:00:00' WHERE intern_id = :intern_id AND DATE(created_at) = :today");
-        $reset_stmt->bindParam(':intern_id', $intern_id);
-        $reset_stmt->bindParam(':today', $today);
-        $reset_stmt->execute();
-        
-        $_SESSION['message'] = "Today's timesheet entries reset successfully.";
-        
+
+        try {
+            $conn->beginTransaction();
+
+            // Delete all timesheet records for this intern
+            $delete_timesheet = $conn->prepare("DELETE FROM timesheet WHERE intern_id = :intern_id");
+            $delete_timesheet->bindParam(':intern_id', $intern_id, PDO::PARAM_INT);
+            $delete_timesheet->execute();
+
+            // Delete all notes for this intern
+            $delete_notes = $conn->prepare("DELETE FROM intern_notes WHERE intern_id = :intern_id");
+            $delete_notes->bindParam(':intern_id', $intern_id, PDO::PARAM_INT);
+            $delete_notes->execute();
+
+            $conn->commit();
+            $_SESSION['message'] = "All timesheet records and notes for the selected intern have been reset.";
+        } catch (PDOException $e) {
+            $conn->rollBack();
+            $_SESSION['message'] = "Error resetting entries: " . $e->getMessage();
+        }
+
         // Redirect to prevent form resubmission
         header("Location: index.php?intern_id=" . $intern_id);
         exit();
@@ -1006,47 +1018,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Export to CSV functionality
     if (isset($_POST['export_csv']) && !empty($_POST['intern_id'])) {
         $intern_id = $_POST['intern_id'];
-        
-        // Get intern name for the filename
-        $name_stmt = $conn->prepare("SELECT Intern_Name FROM interns WHERE Intern_id = :intern_id");
-        $name_stmt->bindParam(':intern_id', $intern_id);
-        $name_stmt->execute();
-        $intern_data = $name_stmt->fetch(PDO::FETCH_ASSOC);
-        $intern_name = $intern_data['Intern_Name'];
-        
-        // Fetch timesheet data
-        $export_stmt = $conn->prepare("SELECT t.*, i.Intern_School as intern_school, DATE(t.created_at) as record_date 
-                                      FROM timesheet t 
-                                      JOIN interns i ON t.intern_id = i.Intern_id 
-                                      WHERE t.intern_id = :intern_id
-                                      ORDER BY t.created_at DESC");
+
+        // Fetch all timesheet records for the intern
+        $export_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id ORDER BY created_at DESC");
         $export_stmt->bindParam(':intern_id', $intern_id);
         $export_stmt->execute();
-        
-        // Create CSV content
-        $filename = str_replace(' ', '_', $intern_name) . "_timesheet_" . date('Y-m-d') . ".csv";
-        $csv_content = "Date,Student Name,School,AM Time In,AM Time Out,PM Time In,PM Time Out,AM Hours,PM Hours,Total Hours\n";
-        
-        while ($row = $export_stmt->fetch(PDO::FETCH_ASSOC)) {
-            $csv_content .= date('Y-m-d', strtotime($row['record_date'])) . ",";
-            $csv_content .= $row['intern_name'] . ",";
-            $csv_content .= $row['intern_school'] . ",";
-            $csv_content .= formatTime($row['am_timein']) . ",";
-            $csv_content .= formatTime($row['am_timeOut']) . ",";
-            $csv_content .= formatTime($row['pm_timein']) . ",";
-            $csv_content .= formatTime($row['pm_timeout']) . ",";
-            $csv_content .= isTimeEmpty($row['am_hours_worked']) ? "-," : formatDuration($row['am_hours_worked']) . ",";
-            $csv_content .= isTimeEmpty($row['pm_hours_worked']) ? "-," : formatDuration($row['pm_hours_worked']) . ",";
-            $csv_content .= isTimeEmpty($row['day_total_hours']) ? "-\n" : formatDuration($row['day_total_hours']) . "\n";
+        $records = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (count($records) > 0) {
+            // Set headers for CSV download
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="timesheet_export_' . $intern_id . '_' . date('Ymd_His') . '.csv"');
+
+            $output = fopen('php://output', 'w');
+
+            // Output column headers
+            fputcsv($output, array_keys($records[0]));
+
+            // Output data rows
+            foreach ($records as $row) {
+                fputcsv($output, $row);
+            }
+
+            fclose($output);
+            exit();
+        } else {
+            $_SESSION['message'] = "No records found to export for this intern.";
+            header("Location: index.php?intern_id=" . $intern_id);
+            exit();
         }
-        
-        // Output CSV headers
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        
-        // Output CSV content
-        echo $csv_content;
-        exit();
     }
     
     // If we get here with a POST request but no specific action was taken,

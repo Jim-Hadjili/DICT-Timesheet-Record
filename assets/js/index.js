@@ -207,55 +207,159 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
-  const overtimeBtn = document.querySelector('button[name="overtime"]');
-  const overtimeWarningModal = document.getElementById('overtime-warning-modal');
-  const overtimeConfirmModal = document.getElementById('overtime-confirm-modal');
-  const closeOvertimeWarning = document.getElementById('close-overtime-warning');
-  const confirmOvertimeBtn = document.getElementById('confirm-overtime');
-  const cancelOvertimeBtn = document.getElementById('cancel-overtime');
+  const overtimeBtn = document.querySelector('button[name="overtime"]')
+  const overtimeWarningModal = document.getElementById("overtime-warning-modal")
+  const overtimeConfirmModal = document.getElementById("overtime-confirm-modal")
+  const closeOvertimeWarning = document.getElementById("close-overtime-warning")
+  const confirmOvertimeBtn = document.getElementById("confirm-overtime")
+  const cancelOvertimeBtn = document.getElementById("cancel-overtime")
 
   if (overtimeBtn) {
-      overtimeBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const currentHour = new Date().getHours();
+    overtimeBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      const currentHour = new Date().getHours()
 
-          if (currentHour < 17) {
-              overtimeWarningModal?.classList.remove('hidden');
-          } else {
-              overtimeConfirmModal?.classList.remove('hidden');
-          }
-      });
+      if (currentHour < 17) {
+        overtimeWarningModal?.classList.remove("hidden")
+      } else {
+        overtimeConfirmModal?.classList.remove("hidden")
+      }
+    })
   }
 
   // Fix for the Understood button
   if (overtimeWarningModal && closeOvertimeWarning) {
-      closeOvertimeWarning.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          overtimeWarningModal.classList.add('hidden');
-      });
+    closeOvertimeWarning.addEventListener("click", (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      overtimeWarningModal.classList.add("hidden")
+    })
   }
 
   // Handle overtime confirmation
   if (confirmOvertimeBtn) {
-      confirmOvertimeBtn.addEventListener('click', () => {
-          overtimeConfirmModal.classList.add('hidden');
-          overtimeBtn.closest('form')?.submit();
-      });
+    confirmOvertimeBtn.addEventListener("click", () => {
+      overtimeConfirmModal.classList.add("hidden")
+      overtimeBtn.closest("form")?.submit()
+    })
   }
 
   if (cancelOvertimeBtn) {
-      cancelOvertimeBtn.addEventListener('click', () => {
-          overtimeConfirmModal.classList.add('hidden');
-      });
+    cancelOvertimeBtn.addEventListener("click", () => {
+      overtimeConfirmModal.classList.add("hidden")
+    })
   }
 
   // Overlay click handling
-  window.addEventListener('click', (e) => {
-      const target = e.target;
-      if (target.closest('.fixed') || target.closest('.absolute')) {
-          overtimeWarningModal?.classList.add('hidden');
-          overtimeConfirmModal?.classList.add('hidden');
+  window.addEventListener("click", (e) => {
+    const target = e.target
+    if (target.closest(".fixed") || target.closest(".absolute")) {
+      overtimeWarningModal?.classList.add("hidden")
+      overtimeConfirmModal?.classList.add("hidden")
+    }
+  })
+
+  // Show modal on reset button click
+  document.getElementById("reset-btn").addEventListener("click", (e) => {
+    e.preventDefault()
+    document.getElementById("reset-confirm-modal").classList.remove("hidden")
+  })
+
+  // Hide modal on cancel
+  document.getElementById("cancel-reset-btn").addEventListener("click", () => {
+    document.getElementById("reset-confirm-modal").classList.add("hidden")
+  })
+
+  // Submit form on confirm
+  document.getElementById("confirm-reset-btn").addEventListener("click", () => {
+    document.getElementById("reset-confirm-modal").classList.add("hidden")
+    document.getElementById("real-reset-submit").click()
+  })
+
+  // Export CSV confirmation handling
+  const exportBtn = document.getElementById("export-csv-btn")
+  const exportModal = document.getElementById("export-confirm-modal")
+  const confirmExportBtn = document.getElementById("confirm-export-btn")
+  const cancelExportBtn = document.getElementById("cancel-export-btn")
+
+  if (exportBtn) {
+    exportBtn.addEventListener("click", function (e) {
+      e.preventDefault()
+      const form = this.closest("form")
+      if (!form.querySelector('select[name="intern_id"]').value) {
+        alert("Please select an intern first")
+        return
       }
-  });
+      exportModal.classList.remove("hidden")
+    })
+  }
+
+  if (confirmExportBtn) {
+    confirmExportBtn.addEventListener("click", function (e) {
+      e.preventDefault() // Prevent default form submission
+      const form = exportBtn.closest("form") // Target the correct form
+      const hiddenInput = document.createElement("input")
+      hiddenInput.type = "hidden"
+      hiddenInput.name = "export_csv"
+      hiddenInput.value = "1"
+      form.appendChild(hiddenInput)
+      form.submit()
+      exportModal.classList.add("hidden")
+    })
+  }
+
+  if (cancelExportBtn) {
+    cancelExportBtn.addEventListener("click", function () {
+      exportModal.classList.add("hidden")
+    })
+  }
+
+  // Close modal when clicking outside
+  if (exportModal) {
+    exportModal.addEventListener("click", function (e) {
+      if (e.target === exportModal) {
+        exportModal.classList.add("hidden")
+      }
+    })
+  }
+
+  // Reset functionality
+  const resetBtn = document.getElementById("reset-btn")
+  const resetModal = document.getElementById("reset-confirm-modal")
+  const cancelResetBtn = document.getElementById("cancel-reset-btn")
+  const confirmResetBtn = document.getElementById("confirm-reset-btn")
+  const realResetSubmit = document.getElementById("real-reset-submit")
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      const internSelect = document.getElementById("intern-select")
+      if (!internSelect.value) {
+        alert("Please select an intern first")
+        return
+      }
+      resetModal.classList.remove("hidden")
+    })
+  }
+
+  if (cancelResetBtn) {
+    cancelResetBtn.addEventListener("click", () => {
+      resetModal.classList.add("hidden")
+    })
+  }
+
+  if (confirmResetBtn) {
+    confirmResetBtn.addEventListener("click", () => {
+      resetModal.classList.add("hidden")
+      realResetSubmit.click() // This triggers the actual form submission
+    })
+  }
+
+  // Close modal when clicking outside
+  if (resetModal) {
+    resetModal.addEventListener("click", (e) => {
+      if (e.target === resetModal) {
+        resetModal.classList.add("hidden")
+      }
+    })
+  }
 })

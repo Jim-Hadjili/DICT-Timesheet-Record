@@ -28,7 +28,7 @@ try {
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
     <title>DICT Internship Timesheet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -463,6 +463,12 @@ try {
     <?php include './components/overtimeWarningModal.php'; ?>
     <?php include './components/overtimeConfirmModal.php'; ?>
 
+    <!-- Reset Modal -->
+    <?php include './components/ResetModal.php'; ?>
+
+    <!-- Export Modal -->
+    <?php include './components/ExportModal.php'; ?>
+
     <!-- Select Intern Modal -->
     <div id="select-intern-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
       <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -495,6 +501,8 @@ try {
         </div>
       </div>
     </div>
+
+
 
     <script src="./assets/js/about_us.js"></script>
     <script src="./assets/js/face-recognition.js"></script>

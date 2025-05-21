@@ -8,9 +8,6 @@
                         <i class="fas fa-clock mr-2"></i>
                         Overtime Not Available
                     </h3>
-                    <button id="close-overtime-warning" class="text-white hover:text-gray-200 focus:outline-none transition-colors">
-                        <i class="fas fa-times"></i>
-                    </button>
                 </div>
             </div>
             
