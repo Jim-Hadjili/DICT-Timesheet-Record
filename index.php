@@ -371,8 +371,24 @@ try {
                             </div>
                         </div>
 
+                        <!-- Overtime Start/End Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
+                            <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500 hover-card col-span-2">
+                                <h3 class="text-sm font-medium text-purple-700">Overtime Start</h3>
+                                <p class="text-lg font-bold text-purple-800">
+                                    <?php echo formatTime($timesheet_data['overtime_start']); ?>
+                                </p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500 hover-card col-span-2">
+                                <h3 class="text-sm font-medium text-purple-700">Overtime End</h3>
+                                <p class="text-lg font-bold text-purple-800">
+                                    <?php echo formatTime($timesheet_data['overtime_end']); ?>
+                                </p>
+                            </div>
+                        </div>
+
                         <!-- Hours Summary -->
-                        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div class="bg-primary-50 rounded-lg p-4 border-l-4 border-primary-500 hover-card">
                                 <h3 class="text-sm font-medium text-primary-700">Morning Hours</h3>
                                 <p class="text-lg font-bold text-primary-800">
@@ -384,6 +400,13 @@ try {
                                 <h3 class="text-sm font-medium text-primary-700">Afternoon Hours</h3>
                                 <p class="text-lg font-bold text-primary-800">
                                     <?php echo isTimeEmpty($timesheet_data['pm_hours_worked']) ? '-' : formatDuration($timesheet_data['pm_hours_worked']); ?>
+                                </p>
+                            </div>
+
+                            <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500 hover-card">
+                                <h3 class="text-sm font-medium text-purple-700">Overtime Hours</h3>
+                                <p class="text-lg font-bold text-purple-800">
+                                    <?php echo (!empty($overtime_hours) && $overtime_hours != '00:00:00') ? formatDuration($overtime_hours) : '-'; ?>
                                 </p>
                             </div>
 
@@ -501,8 +524,6 @@ try {
         </div>
       </div>
     </div>
-
-
 
     <script src="./assets/js/about_us.js"></script>
     <script src="./assets/js/face-recognition.js"></script>

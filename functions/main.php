@@ -754,83 +754,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $current_hour = (int)date('H');
         $current_minute = (int)date('i');
         $today = date('Y-m-d');
-        
+
         // Check if the intern already has a record for TODAY specifically
         $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
         $check_stmt->bindParam(':intern_id', $intern_id);
         $check_stmt->bindParam(':today', $today);
         $check_stmt->execute();
-        
+
         if ($check_stmt->rowCount() > 0) {
             $timesheet_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
-            
-            // Determine if it's morning or afternoon
-            if ($current_hour < 12) {
-                // Morning time-in
-                if (isTimeEmpty($timesheet_data['am_timein'])) {
-                    $update_stmt = $conn->prepare("UPDATE timesheet SET am_timein = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+
+            // Prevent normal time-in after 5PM, require overtime
+            if ($current_hour >= 17) {
+                // Only allow overtime time-in after 5PM
+                if (isTimeEmpty($timesheet_data['overtime_start'])) {
+                    // Start overtime
+                    $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_start = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
                     $update_stmt->bindParam(':time', $current_time);
                     $update_stmt->bindParam(':intern_id', $intern_id);
                     $update_stmt->bindParam(':today', $today);
                     $update_stmt->execute();
-                    $_SESSION['message'] = "Morning time-in recorded successfully at " . formatTime($current_time);
+                    $_SESSION['message'] = "Overtime started at " . formatTime($current_time);
                 } else {
-                    // Check if all entries for the day are complete
-                    if (!isTimeEmpty($timesheet_data['am_timein']) && !isTimeEmpty($timesheet_data['am_timeOut']) && 
-                        !isTimeEmpty($timesheet_data['pm_timein']) && !isTimeEmpty($timesheet_data['pm_timeout'])) {
-                        $_SESSION['message'] = "Your daily duty hours are complete. All time entries for today have been finalized. Please return tomorrow morning to record new time entries.";
-                    } else if (!isTimeEmpty($timesheet_data['am_timeOut'])) {
-                        $_SESSION['message'] = "Morning session is complete. Please use the afternoon time-in option after lunch.";
-                    } else {
-                        $_SESSION['message'] = "Morning time-in already recorded for today. Please use time-out to complete your morning session.";
-                    }
+                    $_SESSION['message'] = "Overtime already started for today.";
                 }
             } else {
-                // Afternoon time-in
-                if (isTimeEmpty($timesheet_data['pm_timein'])) {
-                    // Apply the rounding rule for afternoon time-in
-                    // If time is between 12:00 PM and 1:00 PM, set to 1:00 PM exactly
-                    if ($current_hour == 12 || ($current_hour == 13 && $current_minute == 0)) {
-                        $pm_time = '13:00:00'; // 1:00 PM exactly
-                        $display_time = "1:00 PM";
+                // Normal morning/afternoon time-in logic (unchanged)
+                if ($current_hour < 12) {
+                    if (isTimeEmpty($timesheet_data['am_timein'])) {
+                        $update_stmt = $conn->prepare("UPDATE timesheet SET am_timein = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+                        $update_stmt->bindParam(':time', $current_time);
+                        $update_stmt->bindParam(':intern_id', $intern_id);
+                        $update_stmt->bindParam(':today', $today);
+                        $update_stmt->execute();
+                        $_SESSION['message'] = "Morning time-in recorded successfully at " . formatTime($current_time);
                     } else {
-                        $pm_time = $current_time;
-                        $display_time = formatTime($current_time);
+                        $_SESSION['message'] = "Morning time-in already recorded for today.";
                     }
-                    
-                    $update_stmt = $conn->prepare("UPDATE timesheet SET pm_timein = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
-                    $update_stmt->bindParam(':time', $pm_time);
-                    $update_stmt->bindParam(':intern_id', $intern_id);
-                    $update_stmt->bindParam(':today', $today);
-                    $update_stmt->execute();
-                    $_SESSION['message'] = "Afternoon time-in recorded successfully at " . $display_time;
                 } else {
-                    // Check if all entries for the day are complete
-                    if (!isTimeEmpty($timesheet_data['am_timein']) && !isTimeEmpty($timesheet_data['am_timeOut']) && 
-                        !isTimeEmpty($timesheet_data['pm_timein']) && !isTimeEmpty($timesheet_data['pm_timeout'])) {
-                        $_SESSION['message'] = "Your daily duty hours are complete. All time entries for today have been finalized. Please return tomorrow morning to record new time entries.";
-                    } else if (!isTimeEmpty($timesheet_data['pm_timeout'])) {
-                        $_SESSION['message'] = "Afternoon session is complete. Your time entries for today are finalized. Please return tomorrow morning to record new time entries.";
+                    if (isTimeEmpty($timesheet_data['pm_timein'])) {
+                        // Apply the rounding rule for afternoon time-in
+                        if ($current_hour == 12 || ($current_hour == 13 && $current_minute == 0)) {
+                            $pm_time = '13:00:00';
+                            $display_time = "1:00 PM";
+                        } else {
+                            $pm_time = $current_time;
+                            $display_time = formatTime($current_time);
+                        }
+                        $update_stmt = $conn->prepare("UPDATE timesheet SET pm_timein = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+                        $update_stmt->bindParam(':time', $pm_time);
+                        $update_stmt->bindParam(':intern_id', $intern_id);
+                        $update_stmt->bindParam(':today', $today);
+                        $update_stmt->execute();
+                        $_SESSION['message'] = "Afternoon time-in recorded successfully at " . $display_time;
                     } else {
-                        $_SESSION['message'] = "Afternoon time-in already recorded for today. Please use time-out to complete your afternoon session.";
+                        $_SESSION['message'] = "Afternoon time-in already recorded for today.";
                     }
                 }
             }
         } else {
             // Create a new record for today
-            // Get intern name and required hours
             $name_stmt = $conn->prepare("SELECT Intern_Name, Required_Hours_Rendered FROM interns WHERE Intern_id = :intern_id");
             $name_stmt->bindParam(':intern_id', $intern_id);
             $name_stmt->execute();
             $intern_data = $name_stmt->fetch(PDO::FETCH_ASSOC);
             $intern_name = $intern_data['Intern_Name'];
             $required_hours = $intern_data['Required_Hours_Rendered'];
-            
-            // Determine if it's morning or afternoon
-            if ($current_hour < 12) {
-                // Morning time-in
+
+            if ($current_hour >= 17) {
+                // Only allow overtime time-in after 5PM
+                $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered, overtime_start, created_at) 
+                    VALUES (:intern_id, :intern_name, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', :overtime_start, NOW())");
+                $insert_stmt->bindParam(':intern_id', $intern_id);
+                $insert_stmt->bindParam(':intern_name', $intern_name);
+                $insert_stmt->bindParam(':required_hours', $required_hours);
+                $insert_stmt->bindParam(':overtime_start', $current_time);
+                $insert_stmt->execute();
+                $_SESSION['message'] = "Overtime started at " . formatTime($current_time);
+            } else if ($current_hour < 12) {
                 $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered, created_at) 
-                                             VALUES (:intern_id, :intern_name, :am_timein, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', NOW())");
+                    VALUES (:intern_id, :intern_name, :am_timein, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', NOW())");
                 $insert_stmt->bindParam(':intern_id', $intern_id);
                 $insert_stmt->bindParam(':intern_name', $intern_name);
                 $insert_stmt->bindParam(':am_timein', $current_time);
@@ -839,18 +842,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['message'] = "Morning time-in recorded successfully at " . formatTime($current_time);
             } else {
                 // Afternoon time-in
-                // Apply the rounding rule for afternoon time-in
-                // If time is between 12:00 PM and 1:00 PM, set to 1:00 PM exactly
                 if ($current_hour == 12 || ($current_hour == 13 && $current_minute == 0)) {
-                    $pm_time = '13:00:00'; // 1:00 PM exactly
+                    $pm_time = '13:00:00';
                     $display_time = "1:00 PM";
                 } else {
                     $pm_time = $current_time;
                     $display_time = formatTime($current_time);
                 }
-                
                 $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered, created_at) 
-                                             VALUES (:intern_id, :intern_name, '00:00:00', '00:00:00', :pm_timein, '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', NOW())");
+                    VALUES (:intern_id, :intern_name, '00:00:00', '00:00:00', :pm_timein, '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', NOW())");
                 $insert_stmt->bindParam(':intern_id', $intern_id);
                 $insert_stmt->bindParam(':intern_name', $intern_name);
                 $insert_stmt->bindParam(':pm_timein', $pm_time);
@@ -859,7 +859,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['message'] = "Afternoon time-in recorded successfully at " . $display_time;
             }
         }
-        
+
         // Redirect to prevent form resubmission
         header("Location: index.php?intern_id=" . $intern_id);
         exit();
@@ -925,8 +925,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             } else {
-                // Afternoon time-out
-                if (!isTimeEmpty($timesheet_data['pm_timein']) && isTimeEmpty($timesheet_data['pm_timeout'])) {
+                // Afternoon session
+                if (isTimeEmpty($timesheet_data['pm_timein'])) {
+                    // Afternoon time-in
+                    // Apply the rounding rule for afternoon time-in
+                    // If time is between 12:00 PM and 1:00 PM, set to 1:00 PM exactly
+                    if ($current_hour == 12 || ($current_hour == 13 && $current_minute == 0)) {
+                        $pm_time = '13:00:00'; // 1:00 PM exactly
+                        $display_time = "1:00 PM";
+                    } else {
+                        $pm_time = $current_time;
+                        $display_time = formatTime($current_time);
+                    }
+                    
+                    $update_stmt = $conn->prepare("UPDATE timesheet SET pm_timein = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+                    $update_stmt->bindParam(':time', $pm_time);
+                    $update_stmt->bindParam(':intern_id', $intern_id);
+                    $update_stmt->bindParam(':today', $today);
+                    $update_stmt->execute();
+                    $_SESSION['message'] = "Afternoon time-in recorded successfully at " . $display_time;
+                } else if (isTimeEmpty($timesheet_data['pm_timeout'])) {
+                    // Afternoon time-out
                     // Calculate hours worked
                     $time_in = new DateTime($timesheet_data['pm_timein']);
                     $time_out = new DateTime($current_time);
@@ -1104,38 +1123,38 @@ function formatDuration($duration) {
 
 // Helper function to update total hours for the day
 function updateTotalHours($conn, $intern_id, $date = null) {
-    // If date is not provided, use today's date
     if ($date === null) {
         $date = date('Y-m-d');
     }
-    
-    // Get current hours for the specific date
-    $hours_stmt = $conn->prepare("SELECT am_hours_worked, pm_hours_worked FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :date");
+
+    // Get current hours for the specific date, including overtime
+    $hours_stmt = $conn->prepare("SELECT am_hours_worked, pm_hours_worked, overtime_hours FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :date");
     $hours_stmt->bindParam(':intern_id', $intern_id);
     $hours_stmt->bindParam(':date', $date);
     $hours_stmt->execute();
     $hours_data = $hours_stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($hours_data) {
-        // Calculate total hours
         $am_hours = isTimeEmpty($hours_data['am_hours_worked']) ? '00:00:00' : $hours_data['am_hours_worked'];
         $pm_hours = isTimeEmpty($hours_data['pm_hours_worked']) ? '00:00:00' : $hours_data['pm_hours_worked'];
-        
+        $overtime_hours = isTimeEmpty($hours_data['overtime_hours']) ? '00:00:00' : $hours_data['overtime_hours'];
+
         // Convert to seconds
         $am_seconds = timeToSeconds($am_hours);
         $pm_seconds = timeToSeconds($pm_hours);
-        $total_seconds = $am_seconds + $pm_seconds;
-        
+        $overtime_seconds = timeToSeconds($overtime_hours);
+        $total_seconds = $am_seconds + $pm_seconds + $overtime_seconds;
+
         // Convert back to time format
         $total_hours = secondsToTime($total_seconds);
-        
+
         // Update total hours for the specific date
         $update_stmt = $conn->prepare("UPDATE timesheet SET day_total_hours = :total WHERE intern_id = :intern_id AND DATE(created_at) = :date");
         $update_stmt->bindParam(':total', $total_hours);
         $update_stmt->bindParam(':intern_id', $intern_id);
         $update_stmt->bindParam(':date', $date);
         $update_stmt->execute();
-        
+
         // Update cumulative total hours for the intern
         updateCumulativeTotalHours($conn, $intern_id);
     }
@@ -1198,53 +1217,46 @@ if (isset($_POST['overtime']) && !empty($_POST['intern_id'])) {
     $current_time = date('H:i:s');
     $today = date('Y-m-d');
 
-    // Check if it's after 5 PM
-    if (date('H') >= 17) {
-        $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
-        $check_stmt->bindParam(':intern_id', $intern_id);
-        $check_stmt->bindParam(':today', $today);
-        $check_stmt->execute();
+    // Check if the intern already has a record for TODAY
+    $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+    $check_stmt->bindParam(':intern_id', $intern_id);
+    $check_stmt->bindParam(':today', $today);
+    $check_stmt->execute();
 
-        if ($check_stmt->rowCount() > 0) {
-            $timesheet_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Check if PM timeout exists and overtime hasn't started
-            if (!isTimeEmpty($timesheet_data['pm_timeout']) && isTimeEmpty($timesheet_data['overtime_start'])) {
-                // Start overtime
-                $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_start = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
-                $update_stmt->bindParam(':time', $current_time);
-                $update_stmt->bindParam(':intern_id', $intern_id);
-                $update_stmt->bindParam(':today', $today);
-                $update_stmt->execute();
-                $_SESSION['message'] = "Overtime started at " . formatTime($current_time);
-            } 
-            // If overtime has started but not ended
-            elseif (!isTimeEmpty($timesheet_data['overtime_start']) && isTimeEmpty($timesheet_data['overtime_end'])) {
-                // End overtime and calculate hours
-                $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_end = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
-                $update_stmt->bindParam(':time', $current_time);
-                $update_stmt->bindParam(':intern_id', $intern_id);
-                $update_stmt->bindParam(':today', $today);
-                $update_stmt->execute();
-
-                // Calculate overtime hours
-                $overtime_start = strtotime($timesheet_data['overtime_start']);
-                $overtime_end = strtotime($current_time);
-                $overtime_seconds = $overtime_end - $overtime_start;
-                $overtime_time = gmdate('H:i:s', $overtime_seconds);
-
-                // Update overtime hours
-                $update_hours_stmt = $conn->prepare("UPDATE timesheet SET overtime_hours = :overtime WHERE intern_id = :intern_id AND DATE(created_at) = :today");
-                $update_hours_stmt->bindParam(':overtime', $overtime_time);
-                $update_hours_stmt->bindParam(':intern_id', $intern_id);
-                $update_hours_stmt->bindParam(':today', $today);
-                $update_hours_stmt->execute();
-
-                $_SESSION['message'] = "Overtime ended at " . formatTime($current_time);
-            }
+    if ($check_stmt->rowCount() > 0) {
+        $timesheet_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
+        if (isTimeEmpty($timesheet_data['overtime_start'])) {
+            // FIX: Actually update the overtime_start field!
+            $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_start = :time WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+            $update_stmt->bindParam(':time', $current_time);
+            $update_stmt->bindParam(':intern_id', $intern_id);
+            $update_stmt->bindParam(':today', $today);
+            $update_stmt->execute();
+            $_SESSION['message'] = "Overtime started at " . formatTime($current_time);
+        } else {
+            $_SESSION['message'] = "Overtime already started for today.";
         }
+    } else {
+        // Create a new record for today with overtime_start
+        $name_stmt = $conn->prepare("SELECT Intern_Name, Required_Hours_Rendered FROM interns WHERE Intern_id = :intern_id");
+        $name_stmt->bindParam(':intern_id', $intern_id);
+        $name_stmt->execute();
+        $intern_data = $name_stmt->fetch(PDO::FETCH_ASSOC);
+        $intern_name = $intern_data['Intern_Name'];
+        $required_hours = $intern_data['Required_Hours_Rendered'];
+
+        // FIX: Insert overtime_start with the correct value
+        $insert_stmt = $conn->prepare("INSERT INTO timesheet (intern_id, intern_name, am_timein, am_timeOut, pm_timein, pm_timeout, am_hours_worked, pm_hours_worked, required_hours_rendered, day_total_hours, total_hours_rendered, overtime_start, overtime_end, overtime_hours, created_at) 
+            VALUES (:intern_id, :intern_name, '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', :required_hours, '00:00:00', '00:00:00', :overtime_start, '00:00:00', '00:00:00', NOW())");
+        $insert_stmt->bindParam(':intern_id', $intern_id);
+        $insert_stmt->bindParam(':intern_name', $intern_name);
+        $insert_stmt->bindParam(':required_hours', $required_hours);
+        $insert_stmt->bindParam(':overtime_start', $current_time);
+        $insert_stmt->execute();
+        $_SESSION['message'] = "Overtime started at " . formatTime($current_time);
     }
-    
+
+    // Redirect to prevent form resubmission
     header("Location: index.php?intern_id=" . $intern_id);
     exit();
 }
@@ -1295,4 +1307,35 @@ function calculateTotalHours($am_hours, $pm_hours, $overtime_hours) {
     }
     
     return gmdate('H:i:s', $total_seconds);
+}
+
+// Check if timeout is being processed
+if (isset($_POST['time_out']) && !empty($_POST['intern_id'])) {
+    $intern_id = $_POST['intern_id'];
+    $current_time = date('H:i:s');
+    $today = date('Y-m-d');
+
+    // End overtime if it was started but not ended
+    $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+    $check_stmt->bindParam(':intern_id', $intern_id);
+    $check_stmt->bindParam(':today', $today);
+    $check_stmt->execute();
+    $row = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($row && !empty($row['overtime_start']) && ($row['overtime_end'] == '00:00:00' || empty($row['overtime_end']))) {
+        $overtime_start = strtotime($row['overtime_start']);
+        $overtime_end = strtotime($current_time);
+        $overtime_seconds = $overtime_end - $overtime_start;
+        $overtime_time = gmdate('H:i:s', $overtime_seconds);
+
+        $update_stmt = $conn->prepare("UPDATE timesheet SET overtime_end = :end, overtime_hours = :hours WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+        $update_stmt->bindParam(':end', $current_time);
+        $update_stmt->bindParam(':hours', $overtime_time);
+        $update_stmt->bindParam(':intern_id', $intern_id);
+        $update_stmt->bindParam(':today', $today);
+        $update_stmt->execute();
+
+        // Update total hours for the day to include overtime
+        updateTotalHours($conn, $intern_id, $today);
+    }
 }

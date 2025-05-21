@@ -431,35 +431,44 @@ document.addEventListener("DOMContentLoaded", function () {
   // Make the openModal function available globally
   window.openModal = openModal;
 
+  // Add this at the top or where you store the selected intern
+  let selectedInternId = null;
+
+  // When you open the overtime modal, set selectedInternId
+  // Example: (You may need to adapt this to your UI logic)
+  document.querySelectorAll(".start-overtime-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      selectedInternId = this.dataset.internId;
+      // Show modal logic here...
+    });
+  });
+
   const confirmBtn = document.getElementById("confirm-overtime");
   const confirmModal = document.getElementById("overtime-confirm-modal");
 
   if (confirmBtn) {
     confirmBtn.addEventListener("click", function () {
-      fetch("./functions/recordOvertime.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ action: "record_overtime" }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            // Hide modal and give feedback
-            confirmModal.classList.add("hidden");
-            alert("Overtime recorded!");
-            // Optionally refresh the timesheet or update UI here
-          } else {
-            alert(
-              "Failed to record overtime: " +
-                (data.message || "Unknown error")
-            );
-          }
-        })
-        .catch(() => {
-          alert("An error occurred while recording overtime.");
-        });
+      // Get intern from dropdown if not set
+      if (!selectedInternId) {
+        const select = document.getElementById("intern-select");
+        if (select && select.value) {
+          selectedInternId = select.value;
+        }
+      }
+      if (!selectedInternId) {
+        alert("Please select an intern before starting overtime.");
+        return;
+      }
+      // Submit overtime via form POST (recommended for your backend)
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "index.php";
+      form.innerHTML = `
+        <input type="hidden" name="intern_id" value="${selectedInternId}">
+        <input type="hidden" name="overtime" value="1">
+      `;
+      document.body.appendChild(form);
+      form.submit();
     });
   }
 });
