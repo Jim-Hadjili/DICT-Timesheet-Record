@@ -1249,6 +1249,29 @@ if (isset($_POST['overtime']) && !empty($_POST['intern_id'])) {
     exit();
 }
 
+function calculateOvertime($timesheet) {
+    // Only calculate overtime if pm_timeout is set (afternoon is complete)
+    if (!isTimeEmpty($timesheet['pm_timeout'])) {
+        $pm_timeout = new DateTime($timesheet['pm_timeout']);
+        $standard_end_time = new DateTime('17:00:00'); // 5:00 PM standard end time
+        
+        // Only count overtime if timeout is after standard end time
+        if ($pm_timeout > $standard_end_time) {
+            $interval = $pm_timeout->diff($standard_end_time);
+            return $interval->format('%H:%I:%S');
+        }
+    }
+    
+    return '00:00:00';
+}
+
+// Add this function to check if it's afternoon (for overtime visibility)
+function isAfternoon() {
+    $current_hour = (int)date('H');
+    return $current_hour >= 12;
+}
+
+
 // Modify your total hours calculation to include overtime
 function calculateTotalHours($am_hours, $pm_hours, $overtime_hours) {
     $total_seconds = 0;
