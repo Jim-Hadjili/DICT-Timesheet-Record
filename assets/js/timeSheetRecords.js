@@ -430,4 +430,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Make the openModal function available globally
   window.openModal = openModal;
+
+  const confirmBtn = document.getElementById("confirm-overtime");
+  const confirmModal = document.getElementById("overtime-confirm-modal");
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", function () {
+      fetch("./functions/recordOvertime.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "record_overtime" }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            // Hide modal and give feedback
+            confirmModal.classList.add("hidden");
+            alert("Overtime recorded!");
+            // Optionally refresh the timesheet or update UI here
+          } else {
+            alert(
+              "Failed to record overtime: " +
+                (data.message || "Unknown error")
+            );
+          }
+        })
+        .catch(() => {
+          alert("An error occurred while recording overtime.");
+        });
+    });
+  }
 });
