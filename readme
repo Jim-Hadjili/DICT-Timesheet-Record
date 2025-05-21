@@ -1,2 +1,6 @@
 A timesheet record system for interns of the Department of Information and Communication Technology.
+<<<<<<< HEAD
 This application allows interns to track their daily time records, including Time-in and Time-out times and total hours worked each day. Supervisors can review, approve, or comment on submitted timesheets. The system helps ensure accurate attendance monitoring and efficient record-keeping for both interns and administrators.
+=======
+This application allows interns to track their daily time records, including Time-in and Time-out times and total hours worked each day. Supervisors can review, approve, or comment on submitted timesheets. The system helps ensure accurate attendance monitoring and efficient record-keeping for both interns and administrators.
+>>>>>>> 52517156302f1b3fd35736a560499ad30b0ef9ee
