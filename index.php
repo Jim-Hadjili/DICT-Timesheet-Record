@@ -406,7 +406,7 @@ try {
                             <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500 hover-card">
                                 <h3 class="text-sm font-medium text-purple-700">Overtime Hours</h3>
                                 <p class="text-lg font-bold text-purple-800">
-                                    <?php echo (!empty($overtime_hours) && $overtime_hours != '00:00:00') ? formatDuration($overtime_hours) : '-'; ?>
+                                    <?php echo isTimeEmpty($timesheet_data['overtime_hours']) ? '-' : formatDuration($timesheet_data['overtime_hours']); ?>
                                 </p>
                             </div>
 
