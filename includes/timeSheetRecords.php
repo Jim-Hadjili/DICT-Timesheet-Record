@@ -1,3 +1,19 @@
+<?php
+// Only define these functions if they don't already exist
+if (!function_exists('isTimeEmpty')) {
+    function isTimeEmpty($time) {
+        return empty($time) || $time == '00:00:00';
+    }
+}
+
+if (!function_exists('formatDuration')) {
+    function formatDuration($duration) {
+        $parts = explode(':', $duration);
+        return sprintf("%02d:%02d", $parts[0], $parts[1]);
+    }
+}
+?>
+
 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-card border-2 border-blue-300">
     <div class="p-4 bg-gray-50 border-b border-gray-200">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center">
@@ -17,8 +33,8 @@
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">PM Time Out</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">AM Hours</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">PM Hours</th>
-                    <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Overtime Hours</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Total Hours</th>
+                    <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Overtime Hours</th>
                     <th scope="col" class="px-6 py-3 text-center text-sm font-bold text-black uppercase tracking-wider">Notes</th>
                 </tr>
             </thead>
@@ -48,11 +64,11 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                 <?php echo isTimeEmpty($record['pm_hours_worked']) ? '-' : formatDuration($record['pm_hours_worked']); ?>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                <?php echo isTimeEmpty($record['overtime_hours']) ? '-' : formatDuration($record['overtime_hours']); ?>
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-primary-600">
                                 <?php echo isTimeEmpty($record['day_total_hours']) ? '-' : formatDuration($record['day_total_hours']); ?>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                <?php echo isTimeEmpty($record['overtime_hours']) ? '-' : formatDuration($record['overtime_hours']); ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                 <div class="relative">
