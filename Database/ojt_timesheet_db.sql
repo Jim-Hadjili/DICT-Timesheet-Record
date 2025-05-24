@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 22, 2025 at 11:31 AM
+-- Generation Time: May 22, 2025 at 02:26 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -91,6 +91,7 @@ CREATE TABLE `timesheet` (
   `day_total_hours` time(6) NOT NULL,
   `total_hours_rendered` time(6) NOT NULL,
   `created_at` varchar(255) NOT NULL,
+  `confirm_overtime` int(11) NOT NULL,
   `overtime_start` time(6) NOT NULL,
   `overtime_hours` time(6) NOT NULL,
   `overtime_end` time(6) NOT NULL
@@ -100,11 +101,10 @@ CREATE TABLE `timesheet` (
 -- Dumping data for table `timesheet`
 --
 
-INSERT INTO `timesheet` (`record_id`, `intern_id`, `intern_name`, `am_timein`, `am_timeOut`, `pm_timein`, `pm_timeout`, `am_hours_worked`, `pm_hours_worked`, `required_hours_rendered`, `day_total_hours`, `total_hours_rendered`, `created_at`, `overtime_start`, `overtime_hours`, `overtime_end`) VALUES
-(1, 0, 'Jim Hadjili', '09:19:53.000000', '09:20:10.000000', '17:05:35.000000', '17:17:27.000000', '00:00:17.000000', '00:11:52.000000', 486, '00:12:09.000000', '00:00:00.000000', '', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000'),
-(2, 0, 'gelo', '09:08:06.000000', '09:08:17.000000', '20:04:49.000000', '00:00:00.000000', '00:00:11.000000', '00:00:00.000000', 240, '00:00:11.000000', '00:00:00.000000', '', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000'),
-(34, 8, 'dfghyjuk', '00:00:00.000000', '00:00:00.000000', '19:09:10.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 240, '00:00:00.000000', '00:00:00.000000', '2025-05-21 19:09:01', '19:09:01.000000', '00:00:00.000000', '00:00:00.000000'),
-(40, 6, 'Jim Hadjili', '00:00:00.000000', '00:00:00.000000', '17:28:13.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 240, '00:00:00.000000', '00:00:00.000000', '2025-05-22 17:28:04', '17:28:04.000000', '00:00:00.000000', '00:00:00.000000');
+INSERT INTO `timesheet` (`record_id`, `intern_id`, `intern_name`, `am_timein`, `am_timeOut`, `pm_timein`, `pm_timeout`, `am_hours_worked`, `pm_hours_worked`, `required_hours_rendered`, `day_total_hours`, `total_hours_rendered`, `created_at`, `confirm_overtime`, `overtime_start`, `overtime_hours`, `overtime_end`) VALUES
+(1, 0, 'Jim Hadjili', '09:19:53.000000', '09:20:10.000000', '17:05:35.000000', '17:17:27.000000', '00:00:17.000000', '00:11:52.000000', 486, '00:12:09.000000', '00:00:00.000000', '', 0, '00:00:00.000000', '00:00:00.000000', '00:00:00.000000'),
+(2, 0, 'gelo', '09:08:06.000000', '09:08:17.000000', '20:04:49.000000', '00:00:00.000000', '00:00:11.000000', '00:00:00.000000', 240, '00:00:11.000000', '00:00:00.000000', '', 0, '00:00:00.000000', '00:00:00.000000', '00:00:00.000000'),
+(52, 6, 'Jim Hadjili', '00:00:00.000000', '00:00:00.000000', '15:15:33.000000', '15:15:40.000000', '00:00:00.000000', '00:00:07.000000', 240, '01:52:27.000000', '01:52:27.000000', '2025-05-22 15:15:33', 0, '17:00:00.000000', '01:52:20.000000', '18:52:20.000000');
 
 --
 -- Indexes for dumped tables
@@ -149,7 +149,7 @@ ALTER TABLE `intern_notes`
 -- AUTO_INCREMENT for table `timesheet`
 --
 ALTER TABLE `timesheet`
-  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
