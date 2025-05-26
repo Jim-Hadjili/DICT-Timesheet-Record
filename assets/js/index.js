@@ -59,10 +59,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Auto-hide notifications after 3 seconds
+  // Auto-hide notifications after 8 seconds (instead of 3)
   const notification = document.getElementById("alert-message");
   if (notification) {
-    // Wait 3 seconds before starting the fade-out animation
+    // Wait 8 seconds before starting the fade-out animation
     setTimeout(() => {
       notification.classList.add("fade-out");
 
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => {
         notification.style.display = "none";
       }, 500); // 500ms matches the animation duration
-    }, 3000); // 3000ms = 3 seconds
+    }, 8000); // 8000ms = 8 seconds (increased from 3000ms)
   }
 
   if (deleteBtn) deleteBtn.addEventListener("click", openDeleteModal);
