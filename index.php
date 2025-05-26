@@ -13,6 +13,7 @@ $has_active_pause = false;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DICT Internship Timesheet</title>
+    <link rel="icon" href="./assets/images/DICT.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./index.css">
@@ -233,13 +234,13 @@ $has_active_pause = false;
                                 </span>
                                 <i class="fas fa-chevron-right text-gray-400"></i>
                             </button>
-                            <a href="#" class="flex items-center justify-between w-full bg-white hover:bg-primary-50 text-gray-700 hover:text-primary-600 font-medium py-2 px-3 rounded-lg border border-gray-200 hover:border-primary-200 transition duration-300 ease-in-out">
+                            <button id="open-about-us-modal" class="flex items-center justify-between w-full bg-white hover:bg-primary-50 text-gray-700 hover:text-primary-600 font-medium py-2 px-3 rounded-lg border border-gray-200 hover:border-primary-200 transition duration-300 ease-in-out">
                                 <span class="flex items-center">
                                     <i class="fas fa-info-circle text-primary-500 mr-2"></i>
                                     About Us
                                 </span>
                                 <i class="fas fa-chevron-right text-gray-400"></i>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -712,10 +713,22 @@ $has_active_pause = false;
                                                         </span>
                                                     <?php endif; ?>
                                                     <button type="button" 
-                                                            data-date="<?php echo date('M d, Y', strtotime($row['render_date'])); ?>"
-                                                            data-note="<?php echo htmlspecialchars($row['note'] ?? ''); ?>"
-                                                            data-note-id="<?php echo $row['id']; ?>"
-                                                            class="note-button text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded transition-colors">
+                                                        class="note-button text-xs <?php echo !empty($row['note']) ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'; ?> font-medium py-1 px-2 rounded transition-colors"
+                                                        data-date="<?php echo date('M d, Y', strtotime($row['render_date'])); ?>"
+                                                        data-note="<?php echo htmlspecialchars($row['note'] ?? ''); ?>"
+                                                        data-note-id="<?php echo $row['id']; ?>"
+                                                        data-intern-name="<?php 
+                                                            // Get the currently selected intern's name
+                                                            if (!empty($selected_intern_id)) {
+                                                                $intern_stmt = $conn->prepare('SELECT Intern_Name FROM interns WHERE Intern_id = :id');
+                                                                $intern_stmt->bindParam(':id', $selected_intern_id);
+                                                                $intern_stmt->execute();
+                                                                $intern_data = $intern_stmt->fetch(PDO::FETCH_ASSOC);
+                                                                echo htmlspecialchars($intern_data['Intern_Name'] ?? 'Unknown Intern');
+                                                            } else {
+                                                                echo 'Unknown Intern';
+                                                            }
+                                                        ?>">
                                                         <?php echo !empty($row['note']) ? 'View Note' : 'Add Note'; ?>
                                                     </button>
                                                 </div>
@@ -748,6 +761,7 @@ $has_active_pause = false;
     
     <?php 
     // Include all modal components
+    include './components/modals/about-us-modal.php';
     include './components/modals/delete-modal.php';
     include './components/modals/reset-modal.php';
     include './components/modals/delete-all-modal.php';
@@ -756,7 +770,7 @@ $has_active_pause = false;
     include './components/modals/pause-modal.php';
     include './components/modals/notes-modal.php';
     ?>
-
+    
 </body>
 <script src="./index.js"></script>
 <script src="./assets/js/overtime.js"></script>

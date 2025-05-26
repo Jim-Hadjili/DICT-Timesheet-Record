@@ -996,3 +996,87 @@ if (livePauseDuration && livePauseStart) {
       String(seconds).padStart(2, "0");
   }, 1000);
 }
+
+// About Us Modal Functionality
+document.addEventListener("DOMContentLoaded", function () {
+  const aboutUsModal = document.getElementById("about-us-modal");
+  const openAboutUsModal = document.getElementById("open-about-us-modal");
+  const closeAboutUsModal = document.getElementById("close-about-btn");
+  const closeAboutFooter = document.getElementById("close-about-footer");
+
+  // Function to close modal with fade-out animation
+  function closeAboutUs() {
+    // Add fade-out class (defined in your CSS)
+    aboutUsModal.classList.add("about-modal-animate-out");
+    // Wait for the animation to complete before hiding
+    setTimeout(function () {
+      aboutUsModal.classList.add("hidden");
+      aboutUsModal.classList.remove("about-modal-animate-out");
+      document.body.classList.remove("overflow-hidden");
+    }, 300);
+  }
+
+  // Open the modal
+  if (openAboutUsModal) {
+    openAboutUsModal.addEventListener("click", function () {
+      aboutUsModal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+    });
+  }
+
+  // Close the modal with close button
+  if (closeAboutUsModal) {
+    closeAboutUsModal.addEventListener("click", function () {
+      closeAboutUs();
+    });
+  }
+
+  // Close the modal with footer button
+  if (closeAboutFooter) {
+    closeAboutFooter.addEventListener("click", function () {
+      closeAboutUs();
+    });
+  }
+
+  // Close the modal when clicking outside the modal container
+  aboutUsModal.addEventListener("click", function (e) {
+    if (!e.target.closest(".modal-container")) {
+      closeAboutUs();
+    }
+  });
+  
+  // Generic function to close a modal with fade-out animation (using the same animation class as About Us)
+  function closeModal(modal) {
+    modal.classList.add("about-modal-animate-out"); // Use the About Us fade-out animation
+    setTimeout(function () {
+      modal.classList.add("hidden");
+      modal.classList.remove("about-modal-animate-out");
+      document.body.classList.remove("overflow-hidden");
+    }, 300);
+  }
+
+  // List all modal IDs that need outside click logic
+  const modalIds = [
+    "about-us-modal",
+    "delete-all-modal",
+    "delete-modal",
+    "reset-modal",
+    "export-modal",
+    "overtime-modal",
+    "pause-modal",
+    "notes-modal"
+  ];
+
+  // Attach the outside click listener to each modal
+  modalIds.forEach(function (id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+      modal.addEventListener("click", function (e) {
+        // If click is outside the modal container, close the modal
+        if (!e.target.closest(".modal-container")) {
+          closeModal(modal);
+        }
+      });
+    }
+  });
+});

@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const noteContent = document.getElementById("note-content");
   const timesheetId = document.getElementById("timesheet-id");
   const noteDate = document.getElementById("note-date");
+  const noteInternName = document.getElementById("note-intern-name");
 
   // Add click event to all note buttons
   document.querySelectorAll(".note-button").forEach((button) => {
@@ -18,12 +19,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const note = this.getAttribute("data-note");
       const date = this.getAttribute("data-date");
       const id = this.getAttribute("data-note-id");
+      const internName = this.getAttribute("data-intern-name"); // Get intern name from data attribute
 
       // Set the timesheet ID
       timesheetId.value = id;
 
-      // Set the date in the modal
+      // Set the date and intern name in the modal
       noteDate.textContent = date;
+      noteInternName.textContent = internName; // Set intern name in the modal
 
       // Check if this is an existing note or a new one
       if (note && note !== "") {
