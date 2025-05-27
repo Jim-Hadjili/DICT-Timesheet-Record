@@ -39,9 +39,6 @@ updateCurrentTime();
 document.addEventListener("DOMContentLoaded", function () {
   // Overtime Modal Functionality
   setupOvertimeModal();
-
-  // Setup other modals and functionality
-  // ... other code ...
 });
 
 // Overtime Modal Functionality
@@ -209,6 +206,9 @@ const cancelDelete = document.getElementById("cancel-delete");
 const confirmDelete = document.getElementById("confirm-delete");
 const studentNameSpan = document.getElementById("student-name");
 const internSelect = document.getElementById("intern-select");
+const deleteEmptyModal = document.getElementById("delete-empty-modal");
+const resetEmptyModal = document.getElementById("reset-empty-modal");
+const exportEmptyModal = document.getElementById("export-empty-modal");
 
 // Reset confirmation modal functionality
 const resetModal = document.getElementById("reset-modal");
@@ -231,7 +231,7 @@ const deleteConfirmationInput = document.getElementById(
   "delete-confirmation-input"
 );
 
-// Add these with your other modal variables
+// Other modal variables
 const exportModal = document.getElementById("export-modal");
 const exportButton = document.querySelector('button[name="export_csv"]');
 const closeExportModal = document.getElementById("close-export-modal");
@@ -244,7 +244,8 @@ const exportFilenameElement = document.getElementById("export-filename");
 if (deleteButton) {
   deleteButton.addEventListener("click", function (e) {
     if (internSelect.value === "") {
-      alert("Please select a student first.");
+      deleteEmptyModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
       return;
     }
 
@@ -255,6 +256,15 @@ if (deleteButton) {
     // Show the modal
     deleteModal.classList.remove("hidden");
     document.body.classList.add("overflow-hidden"); // Prevent scrolling when modal is open
+  });
+}
+if (deleteEmptyModal) {
+  deleteEmptyModal.addEventListener('click', function(e) {
+    // Only close if clicking the overlay, not the modal content
+    if (!e.target.closest('.modal-container')) {
+      deleteEmptyModal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
   });
 }
 
@@ -306,7 +316,8 @@ if (confirmDelete) {
 if (resetButton) {
   resetButton.addEventListener("click", function (e) {
     if (internSelect.value === "") {
-      alert("Please select a student first.");
+      resetEmptyModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
       return;
     }
 
@@ -481,12 +492,13 @@ if (deleteConfirmationInput) {
 
 // Show export modal when export button is clicked
 if (exportButton) {
-  exportButton.addEventListener("click", function (e) {
-    e.preventDefault(); // Prevent the form from submitting directly
-
-    if (internSelect.value === "") {
-      alert("Please select a student first.");
-      return;
+  exportButton.addEventListener("click", function(e) {
+    // Prevent form submission
+    if (exportEmptyModal) {
+      e.preventDefault();
+      exportEmptyModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+      return false;
     }
 
     // Update the student name in the modal
@@ -1122,6 +1134,15 @@ document.addEventListener("DOMContentLoaded", function () {
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
+        });
+    });
+    
+    const deleteEmptyModal = document.getElementById('delete-empty-modal');
+    const closeBtns = document.querySelectorAll('.close-delete-empty-modal');
+
+    closeBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            deleteEmptyModal.classList.add('hidden');
         });
     });
 });
