@@ -294,7 +294,7 @@ try {
                                 <i class="fas fa-clock mr-2"></i>
                                 Overtime
                             </button>
-                            <button type="submit" name="reset_entries" class="flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md" onclick="return confirm('Are you sure you want to reset all entries?')">
+                            <button type="submit" name="reset_entries" id="reset-btn" class="flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md" onclick="return confirm('Are you sure you want to reset all entries?')">
                                 <i class="fas fa-redo-alt mr-2"></i>
                                 Reset
                             </button>
@@ -483,7 +483,7 @@ try {
     <?php include './components/AboutUsModal.php'; ?>
 
     <!-- Overtime Modal -->
-    <?php include './components/afterHoursModal.php'; ?>
+    <?php include './components/overtimeDeclineModal.php'; ?>
     <?php include './components/overtimeWarningModal.php'; ?>
     <?php include './components/overtimeConfirmModal.php'; ?>
 
@@ -525,14 +525,6 @@ try {
         </div>
       </div>
     </div>
-
-    <?php if (isset($_SESSION['afternoon_already_out'])): ?>
-<script>
-    window.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('afternoon-already-out-modal').classList.remove('hidden');
-    });
-</script>
-<?php unset($_SESSION['afternoon_already_out']); endif; ?>
 
     <script src="./assets/js/about_us.js"></script>
     <script src="./assets/js/face-recognition.js"></script>

@@ -47,10 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
     internSelect.addEventListener("change", function () {
       console.log("Intern select changed to:", this.value);
 
-      // Get the selected value
-      const selectedValue = this.value;
+      // FIRST: Update button states BEFORE redirect
+      toggleOvertimeButton();
 
-      // Redirect to the appropriate page
+      // THEN: Redirect to the appropriate page
+      const selectedValue = this.value;
       if (selectedValue) {
         window.location.href = "index.php?intern_id=" + selectedValue;
       } else {
@@ -272,11 +273,60 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmOvertimeBtn = document.getElementById("confirm-overtime");
   const cancelOvertimeBtn = document.getElementById("cancel-overtime");
 
+  // Disable overtime button if no intern is selected
+  function toggleOvertimeButton() {
+    const isInternSelected = internSelect && internSelect.value;
+
+    // Handle overtime button
+    if (overtimeBtn) {
+      if (!isInternSelected) {
+        overtimeBtn.disabled = true;
+        overtimeBtn.classList.add("opacity-50", "cursor-not-allowed");
+      } else {
+        overtimeBtn.disabled = false;
+        overtimeBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+    }
+
+    // Handle other buttons
+    const timeInBtn = document.querySelector('button[name="time_in"]');
+    const timeOutBtn = document.querySelector('button[name="time_out"]');
+    const resetBtn = document.getElementById("reset-btn");
+    const exportBtn = document.getElementById("export-csv-btn");
+
+      if (resetBtn && internSelect && !internSelect.value) {
+    resetBtn.disabled = true;
+    resetBtn.classList.add("opacity-50", "cursor-not-allowed");
+    }
+
+    [timeInBtn, timeOutBtn, resetBtn, exportBtn].forEach((btn) => {
+      if (btn) {
+        btn.disabled = !isInternSelected;
+        if (!isInternSelected) {
+          btn.classList.add("opacity-50", "cursor-not-allowed");
+        } else {
+          btn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+      }
+    });
+  }
+
+  // Check on page load
+  toggleOvertimeButton();
+
+  // Check when intern selection changes
   if (overtimeBtn) {
     overtimeBtn.addEventListener("click", (e) => {
       // Only prevent default if the button is not disabled
       if (!overtimeBtn.disabled) {
         e.preventDefault();
+
+        // Check if user has already timed out of afternoon
+        if (window.hasTimedOutAfternoon === true) {
+          document.getElementById("overtime-declined-modal")?.classList.remove("hidden");
+          return;
+        }
+
         const currentHour = new Date().getHours();
 
         // If it's before 5 PM, show warning
@@ -326,12 +376,20 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       overtimeWarningModal?.classList.add("hidden");
       overtimeConfirmModal?.classList.add("hidden");
+      document.getElementById("overtime-declined-modal")?.classList.add("hidden");
     }
   });
 
   // Show modal on reset button click
   document.getElementById("reset-btn").addEventListener("click", (e) => {
     e.preventDefault();
+    
+    // Check if button is disabled
+    const resetBtn = document.getElementById("reset-btn");
+    if (resetBtn.disabled) {
+      return; // Do nothing if button is disabled
+    }
+    
     document.getElementById("reset-confirm-modal").classList.remove("hidden");
   });
 
@@ -355,6 +413,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (exportBtn) {
     exportBtn.addEventListener("click", function (e) {
       e.preventDefault();
+      if (this.disabled) {
+        return; // Do nothing if button is disabled
+      }
       const form = this.closest("form");
       if (!form.querySelector('select[name="intern_id"]').value) {
         alert("Please select an intern first");
@@ -393,43 +454,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Reset functionality
-  const resetBtn = document.getElementById("reset-btn");
-  const resetModal = document.getElementById("reset-confirm-modal");
-  const cancelResetBtn = document.getElementById("cancel-reset-btn");
-  const confirmResetBtn = document.getElementById("confirm-reset-btn");
-  const realResetSubmit = document.getElementById("real-reset-submit");
-
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      const internSelect = document.getElementById("intern-select");
-      if (!internSelect.value) {
-        alert("Please select an intern first");
-        return;
-      }
-      resetModal.classList.remove("hidden");
-    });
-  }
-
-  if (cancelResetBtn) {
-    cancelResetBtn.addEventListener("click", () => {
-      resetModal.classList.add("hidden");
-    });
-  }
-
-  if (confirmResetBtn) {
-    confirmResetBtn.addEventListener("click", () => {
-      resetModal.classList.add("hidden");
-      realResetSubmit.click(); // This triggers the actual form submission
-    });
-  }
-
-  // Close modal when clicking outside
-  if (resetModal) {
-    resetModal.addEventListener("click", (e) => {
-      if (e.target === resetModal) {
-        resetModal.classList.add("hidden");
-      }
+  // Close decline modal handler
+  const closeDeclineBtn = document.getElementById("understand-afternoon-out");
+  if (closeDeclineBtn) {
+    closeDeclineBtn.addEventListener("click", () => {
+      document.getElementById("overtime-declined-modal")?.classList.add("hidden");
     });
   }
 });
