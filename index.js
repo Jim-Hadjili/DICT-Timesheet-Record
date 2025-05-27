@@ -493,14 +493,17 @@ if (deleteConfirmationInput) {
 // Show export modal when export button is clicked
 if (exportButton) {
   exportButton.addEventListener("click", function(e) {
-    // Prevent form submission
-    if (exportEmptyModal) {
+    const internSelect = document.getElementById("intern-select");
+    if (!internSelect || internSelect.value === "") {
+      // No intern selected, show empty modal
       e.preventDefault();
       exportEmptyModal.classList.remove('hidden');
       document.body.classList.add('overflow-hidden');
       return false;
     }
 
+    // Intern is selected, show export modal
+    e.preventDefault();
     // Update the student name in the modal
     const selectedOption = internSelect.options[internSelect.selectedIndex];
     exportStudentNameSpan.textContent = selectedOption.text;
