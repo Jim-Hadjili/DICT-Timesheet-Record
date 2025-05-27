@@ -483,6 +483,7 @@ try {
     <?php include './components/AboutUsModal.php'; ?>
 
     <!-- Overtime Modal -->
+    <?php include './components/afterHoursModal.php'; ?>
     <?php include './components/overtimeWarningModal.php'; ?>
     <?php include './components/overtimeConfirmModal.php'; ?>
 
@@ -524,6 +525,14 @@ try {
         </div>
       </div>
     </div>
+
+    <?php if (isset($_SESSION['afternoon_already_out'])): ?>
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('afternoon-already-out-modal').classList.remove('hidden');
+    });
+</script>
+<?php unset($_SESSION['afternoon_already_out']); endif; ?>
 
     <script src="./assets/js/about_us.js"></script>
     <script src="./assets/js/face-recognition.js"></script>
