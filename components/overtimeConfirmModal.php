@@ -30,19 +30,22 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-base text-gray-600">When you eventually time out, your overtime will be automatically calculated and added to your total hours for today.</p>
+                <p class="text-base">When you eventually time out, your overtime will be automatically calculated and added to your total hours for today.</p>
             </div>
             <!-- Modal Footer -->
             <div class="bg-gray-50 px-8 py-5 sm:flex sm:flex-row-reverse">
                 <form id="overtime-form" method="post" action="index.php">
                     <input type="hidden" name="overtime" value="1">
                     <input type="hidden" name="intern_id" value="<?php echo isset($_GET['intern_id']) ? $_GET['intern_id'] : ''; ?>">
-                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-8 py-3 bg-purple-800 text-lg font-medium text-white hover:bg-purple-900 focus:outline-none sm:ml-3 sm:w-auto">
+                    <button type="submit" id="confirm-overtime" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-8 py-3 bg-purple-800 text-lg font-medium text-white hover:bg-purple-900 focus:outline-none sm:ml-3 sm:w-auto">
                         Confirm Overtime
                     </button>
                 </form>
-                <button id="cancel-overtime" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-8 py-3 bg-white text-lg font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto">
-                    Cancel
+                <button 
+                  id="cancel-overtime"
+                  type="button" 
+                  class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-400 shadow-sm px-8 py-3 bg-gray-100 text-lg font-medium text-gray-800 hover:bg-gray-200 hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 sm:mt-0 sm:ml-3 sm:w-auto transition-all duration-200">
+                  Cancel
                 </button>
             </div>
         </div>

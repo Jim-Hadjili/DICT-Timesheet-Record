@@ -74,9 +74,10 @@ $dev2_email = "almujim.hadjili@gmail.com";
                                 <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl mr-4 border-4 border-white shadow-md">
                                     <img src="assets/images/Dev1.jpg" alt="Angelo" class="w-full h-full object-cover rounded-full">
                                 </div>
-                                <div>
-                                    <h4 class="text-xl font-bold text-primary-700">Angelo Suan</h4>
-                                    <p class="text-sm text-primary-500 font-medium">Intern Developer</p>
+                                <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl mr-4 border-4 border-white shadow-md">
+                                    <i class="fas fa-user"></i>
+                                    <!-- You can replace this with an actual image if available -->
+                                    <!-- <img src="path/to/person2.jpg" alt="Jane Smith" class="w-full h-full object-cover rounded-full"> -->
                                 </div>
                             </div>
                         </div>
