@@ -1079,4 +1079,49 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   });
+
+  // Scroll to timesheet records section
+    const timesheetRecordsButton = document.getElementById('timesheet-records-button');
+    
+    timesheetRecordsButton.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent default action
+        
+        const timesheetRecordsSection = document.querySelector('#timesheet-records-title'); // Target the timesheet records title
+        
+        if (timesheetRecordsSection) {
+            timesheetRecordsSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start' // Scroll to the start of the element
+            });
+        }
+    });
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    
+    // Function to check scroll position and toggle button visibility
+    function toggleScrollTopButton() {
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            scrollToTopBtn.classList.remove('opacity-0', 'hidden');
+            scrollToTopBtn.classList.add('opacity-100');
+        } else {
+            scrollToTopBtn.classList.remove('opacity-100');
+            scrollToTopBtn.classList.add('opacity-0');
+            setTimeout(() => scrollToTopBtn.classList.add('hidden'), 300);
+        }
+    }
+    
+    // Call the function on page load
+    toggleScrollTopButton();
+    
+    // Show/hide the button based on scroll position
+    window.addEventListener('scroll', function() {
+        toggleScrollTopButton();
+    });
+    
+    // Scroll to top when the button is clicked
+    scrollToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 });

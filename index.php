@@ -284,6 +284,13 @@ $has_active_pause = false;
                                 </span>
                                 <i class="fas fa-chevron-right text-gray-400"></i>
                             </button>
+                            <button id="timesheet-records-button" class="flex items-center justify-between w-full bg-white hover:bg-primary-50 text-gray-700 hover:text-primary-600 font-medium py-2 px-3 rounded-lg border border-gray-200 hover:border-primary-200 transition duration-300 ease-in-out">
+                                <span class="flex items-center">
+                                    <i class="fas fa-list-alt text-primary-500 mr-2"></i>
+                                    Timesheet Records
+                                </span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -661,12 +668,12 @@ $has_active_pause = false;
                     <div class="p-4 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex items-center mb-2 sm:mb-0">
                                 <i class="fas fa-table text-primary-600 mr-2"></i>
-                                <h2 class="text-lg font-semibold text-gray-800">Timesheet Records</h2>
+                                <h2 id="timesheet-records-title" class="text-2xl font-semibold text-gray-800 mb-4">Timesheet Records</h2>
                             </div>
                             <form method="get" class="flex flex-wrap gap-2 items-center justify-end">
                                 <?php if (!empty($selected_intern_id)): 
                                     $available_months = getAvailableMonths($conn, $selected_intern_id);
-                                    // Only show month filter if there are months available (2 or more)
+                                    // Only show month filter if there are months available (1 or more)
                                     if (!empty($available_months)):
                                 ?>
                                     <label class="text-sm text-gray-700 mr-2">Month:</label>
@@ -850,6 +857,11 @@ $has_active_pause = false;
     include './components/modals/notes-modal.php';
     include './components/modals/face-recognition-modal.php';
     ?>
+    
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" class="hidden fixed bottom-5 left-28 bg-primary-600 hover:bg-primary-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-md transition-opacity duration-300 opacity-0">
+        <i class="fas fa-arrow-up text-lg"></i>
+    </button>
     
 </body>
 <script src="./index.js"></script>
