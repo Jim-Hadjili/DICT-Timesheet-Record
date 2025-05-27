@@ -2,6 +2,49 @@
 
 include './main.php';
 
+// Initialize timesheet statement
+$timesheet_stmt = $conn->prepare("SELECT t.*, 
+                                 t.record_id as id,
+                                 i.Intern_School as intern_school, 
+                                 i.Required_Hours_Rendered as required_hours, 
+                                 DATE(t.created_at) as render_date, 
+                                 t.notes as note
+                                 FROM timesheet t 
+                                 JOIN interns i ON t.intern_id = i.Intern_id 
+                                 WHERE t.intern_id = :intern_id");
+
+// Get sort and filter parameters
+$sort_date = $_GET['sort_date'] ?? 'desc';
+$filter = $_GET['filter'] ?? '';
+
+// Build the query with sorting and filtering
+$timesheet_query = "SELECT t.*, 
+                   t.record_id as id,
+                   i.Intern_School as intern_school, 
+                   i.Required_Hours_Rendered as required_hours, 
+                   DATE(t.created_at) as render_date,
+                   t.notes as note
+                   FROM timesheet t 
+                   JOIN interns i ON t.intern_id = i.Intern_id 
+                   WHERE t.intern_id = :intern_id";
+
+// Add filter conditions
+if ($filter === 'notes') {
+    $timesheet_query .= " AND t.notes IS NOT NULL AND t.notes != ''";
+} elseif ($filter === 'ot') {
+    $timesheet_query .= " AND t.overtime_hours IS NOT NULL AND t.overtime_hours != '00:00:00'";
+}
+
+// Add sorting
+$timesheet_query .= " ORDER BY t.created_at " . ($sort_date === 'asc' ? 'ASC' : 'DESC');
+
+// Prepare and execute statement if intern is selected
+if (!empty($selected_intern_id)) {
+    $timesheet_stmt = $conn->prepare($timesheet_query);
+    $timesheet_stmt->bindParam(':intern_id', $selected_intern_id);
+    $timesheet_stmt->execute();
+}
+
 // Initialize important variables at the top of the file
 $has_active_pause = false;
 
@@ -615,10 +658,28 @@ $has_active_pause = false;
         </div>
         <!-- Timesheet Records -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div class="p-4 bg-gray-50 border-b flex items-center">
-                        <i class="fas fa-table text-primary-600 mr-2"></i>
-                        <h2 class="text-lg font-semibold text-gray-800">Timesheet Records</h2>
-                    </div>
+                    <div class="p-4 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-center mb-2 sm:mb-0">
+                                <i class="fas fa-table text-primary-600 mr-2"></i>
+                                <h2 class="text-lg font-semibold text-gray-800">Timesheet Records</h2>
+                            </div>
+                            <form method="get" class="flex flex-wrap gap-2 items-center justify-end">
+                                <label class="text-sm text-gray-700 mr-2">Sort by date:</label>
+                                <select name="sort_date" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
+                                    <option value="desc" <?php if(($_GET['sort_date'] ?? 'desc') === 'desc') echo 'selected'; ?>>Newest First</option>
+                                    <option value="asc" <?php if(($_GET['sort_date'] ?? '') === 'asc') echo 'selected'; ?>>Oldest First</option>
+                                </select>
+                                <label class="text-sm text-gray-700 ml-4 mr-2">Show:</label>
+                                <select name="filter" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
+                                    <option value="">All Records</option>
+                                    <option value="notes" <?php if(($_GET['filter'] ?? '') === 'notes') echo 'selected'; ?>>Notes Only</option>
+                                    <option value="ot" <?php if(($_GET['filter'] ?? '') === 'ot') echo 'selected'; ?>>OT Only</option>
+                                </select>
+                                <?php if (!empty($selected_intern_id)): ?>
+                                    <input type="hidden" name="intern_id" value="<?php echo htmlspecialchars($selected_intern_id); ?>">
+                                <?php endif; ?>
+                            </form>
+                        </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -706,14 +767,8 @@ $has_active_pause = false;
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                                 <div class="flex items-center">
-                                                    <?php if(!empty($row['note'])): ?>
-                                                        <span class="relative mr-1">
-                                                            <span class="absolute -top-1 -right-1 block h-2 w-2 rounded-full bg-red-500"></span>
-                                                            <i class="fas fa-sticky-note text-gray-400"></i>
-                                                        </span>
-                                                    <?php endif; ?>
                                                     <button type="button" 
-                                                        class="note-button text-xs <?php echo !empty($row['note']) ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'; ?> font-medium py-1 px-2 rounded transition-colors"
+                                                        class="note-button text-xs <?php echo !empty($row['note']) ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'; ?> font-medium py-1 px-2 rounded transition-colors relative"
                                                         data-date="<?php echo date('M d, Y', strtotime($row['render_date'])); ?>"
                                                         data-note="<?php echo htmlspecialchars($row['note'] ?? ''); ?>"
                                                         data-note-id="<?php echo $row['id']; ?>"
@@ -730,6 +785,9 @@ $has_active_pause = false;
                                                             }
                                                         ?>">
                                                         <?php echo !empty($row['note']) ? 'View Note' : 'Add Note'; ?>
+                                                        <?php if(!empty($row['note'])): ?>
+                                                            <span class="absolute -top-1 -right-1 block h-2 w-2 rounded-full bg-red-500"></span>
+                                                        <?php endif; ?>
                                                     </button>
                                                 </div>
                                             </td>
