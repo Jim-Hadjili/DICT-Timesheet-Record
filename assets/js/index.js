@@ -260,7 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Overtime button handling
-  const overtimeBtn = document.querySelector('button[name="overtime"]');
+  const overtimeBtn = document.getElementById("overtime-btn");
   const overtimeWarningModal = document.getElementById(
     "overtime-warning-modal"
   );
@@ -272,6 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   const confirmOvertimeBtn = document.getElementById("confirm-overtime");
   const cancelOvertimeBtn = document.getElementById("cancel-overtime");
+  const overtimeDeclinedModal = document.getElementById("overtime-declined-modal");
+  const form = overtimeBtn?.closest("form");
 
   // Disable overtime button if no intern is selected
   function toggleOvertimeButton() {
@@ -321,8 +323,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!overtimeBtn.disabled) {
         e.preventDefault();
 
-        // Check if user has already timed out of afternoon
-        if (window.hasTimedOutAfternoon === true) {
+        // Check if user has already timed out of afternoon but hasn't started overtime
+        if (window.hasTimedOutAfternoonNoOvertime === true) {
           document.getElementById("overtime-declined-modal")?.classList.remove("hidden");
           return;
         }
@@ -459,6 +461,23 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeDeclineBtn) {
     closeDeclineBtn.addEventListener("click", () => {
       document.getElementById("overtime-declined-modal")?.classList.add("hidden");
+    });
+  }
+
+  // Add specific click handler for overtime confirm modal
+  if (overtimeConfirmModal) {
+    overtimeConfirmModal.addEventListener("click", (e) => {
+      // Find what element was actually clicked
+      const clickedElement = e.target;
+      
+      // Get the modal content element (usually the first or second child of the modal)
+      const modalContent = overtimeConfirmModal.querySelector('.bg-white') || 
+                           overtimeConfirmModal.querySelector('.relative');
+      
+      // If clicked element is outside the modal content, close the modal
+      if (modalContent && !modalContent.contains(clickedElement)) {
+        overtimeConfirmModal.classList.add("hidden");
+      }
     });
   }
 });

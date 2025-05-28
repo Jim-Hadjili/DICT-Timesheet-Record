@@ -32,14 +32,14 @@
 <?php
 // --- Social Media links in About Us ---
 $dev1_facebook_link = "https://www.facebook.com/angelo.suan.927";
-$dev1_github_link = "https://github.com/AcDinoraus";
+$dev1_github_link = "";
 $dev1_linkedin_link = "";
 $dev1_twitter_link = "";
 $dev1_email = "angelosuan20@gmail.com";
 
 $dev2_facebook_link = "https://www.facebook.com/jim.hadjili.2025";
-$dev2_github_link = "https://github.com/";
-$dev2_linkedin_link = "https://linkedin.com/in/";
+$dev2_github_link = "";
+$dev2_linkedin_link = "";
 $dev2_twitter_link = "";
 $dev2_email = "almujim.hadjili@gmail.com";
 ?>
@@ -72,21 +72,18 @@ $dev2_email = "almujim.hadjili@gmail.com";
                         <div class="bg-primary-50 p-6 border-b border-primary-100">
                             <div class="flex items-center">
                                 <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl mr-4 border-4 border-white shadow-md">
-                                    <img src="assets/images/Dev1.jpg" alt="Angelo" class="w-full h-full object-cover rounded-full">
-                                </div>
-                                <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl mr-4 border-4 border-white shadow-md">
                                     <i class="fas fa-user"></i>
                                     <!-- You can replace this with an actual image if available -->
                                     <!-- <img src="path/to/person2.jpg" alt="Jane Smith" class="w-full h-full object-cover rounded-full"> -->
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary-700">Angelo Suan</h4>
+                                    <p class="text-sm text-primary-500 font-medium">Intern Developer</p>
                                 </div>
                             </div>
                         </div>
                         <div class="p-4">
                             <p class="text-gray-600 mb-6 text-justify">
-                                John is a dedicated software developer with expertise in web applications and database management. 
-                                He led the development of the DICT Internship Timesheet System, focusing on creating an intuitive 
-                                and efficient platform for tracking intern hours.
-                                NOT FINAL
                             </p>
                             
                             <!-- Social Media Links -->
@@ -151,11 +148,6 @@ $dev2_email = "almujim.hadjili@gmail.com";
                         </div>
                         <div class="p-4">
                             <p class="text-gray-600 mb-6 text-justify">
-                                Jane oversees the DICT Internship Program, ensuring that interns receive valuable 
-                                experience and mentorship during their time with the department. She worked closely 
-                                with the development team to design a timesheet system that meets the needs of both 
-                                interns and supervisors.
-                                NOT FINAL
                             </p>
                             
                             <!-- Social Media Links -->

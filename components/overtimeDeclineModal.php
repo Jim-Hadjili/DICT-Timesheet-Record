@@ -40,9 +40,3 @@
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById('understand-afternoon-out')?.addEventListener('click', function() {
-  document.getElementById('overtime-declined-modal').classList.add('hidden');
-});
-</script>

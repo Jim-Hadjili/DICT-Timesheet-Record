@@ -20,7 +20,26 @@ try {
     // Log the error but don't stop execution
     error_log("Error checking/adding created_at column: " . $e->getMessage());
 }
+// Get selected intern from URL or post
+$selected_intern_id = isset($_GET['intern_id']) ? $_GET['intern_id'] : (isset($_POST['intern_id']) ? $_POST['intern_id'] : '');
 
+// Check if intern has timed out of afternoon AND no overtime has been started
+$hasTimedOutAfternoonNoOvertime = false;
+if (!empty($selected_intern_id)) {
+    $today = date('Y-m-d');
+    $check_stmt = $conn->prepare("SELECT * FROM timesheet WHERE intern_id = :intern_id AND DATE(created_at) = :today");
+    $check_stmt->bindParam(':intern_id', $selected_intern_id);
+    $check_stmt->bindParam(':today', $today);
+    $check_stmt->execute();
+    $overtime_check = $check_stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Set the flag if: pm_timeout has a value BUT overtime_start is empty
+    if (!empty($overtime_check) && 
+        !isTimeEmpty($overtime_check['pm_timeout']) && 
+        isTimeEmpty($overtime_check['overtime_start'])) {
+        $hasTimedOutAfternoonNoOvertime = true;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -33,6 +52,9 @@ try {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./assets/css/index.css">
+        <script>
+    window.hasTimedOutAfternoon = <?php echo isset($hasTimedOutAfternoon) && $hasTimedOutAfternoon ? 'true' : 'false'; ?>;
+    </script>
     <script src="./assets/js/tailwindConfig.js"></script>
     <link rel="icon" href="./assets/images/Dict.png" type="image/png" sizes="180x180">
 </head>
@@ -192,6 +214,7 @@ try {
                                     $check_stmt->bindParam(':intern_id', $intern_id);
                                     $check_stmt->bindParam(':today', $today);
                                     $check_stmt->execute();
+                                    $timesheet_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
                                     if ($check_stmt->rowCount() > 0) {
                                         $timesheet_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
@@ -290,7 +313,7 @@ try {
                                 <i class="fas fa-sign-out-alt mr-2"></i>
                                 Time Out
                             </button>
-                            <button type="submit" name="overtime" class="flex items-center justify-center bg-purple-800 hover:bg-purple-900 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
+                            <button type="submit" name="overtime" id="overtime-btn" class="flex items-center justify-center bg-purple-800 hover:bg-purple-900 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
                                 <i class="fas fa-clock mr-2"></i>
                                 Overtime
                             </button>
