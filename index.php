@@ -664,17 +664,38 @@ $has_active_pause = false;
                                 <h2 class="text-lg font-semibold text-gray-800">Timesheet Records</h2>
                             </div>
                             <form method="get" class="flex flex-wrap gap-2 items-center justify-end">
-                                <label class="text-sm text-gray-700 mr-2">Sort by date:</label>
+                                <?php if (!empty($selected_intern_id)): 
+                                    $available_months = getAvailableMonths($conn, $selected_intern_id);
+                                    // Only show month filter if there are months available (2 or more)
+                                    if (!empty($available_months)):
+                                ?>
+                                    <label class="text-sm text-gray-700 mr-2">Month:</label>
+                                    <select name="month" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
+                                        <option value="">All Months</option>
+                                        <?php foreach ($available_months as $month): ?>
+                                            <option value="<?php echo $month['month_year']; ?>" 
+                                                <?php if(($_GET['month'] ?? '') === $month['month_year']) echo 'selected'; ?>>
+                                                <?php echo $month['month_display']; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php 
+                                    endif;
+                                endif; 
+                                ?>
+                                <label class="text-sm text-gray-700 ml-4 mr-2">Sort by date:</label>
                                 <select name="sort_date" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
                                     <option value="desc" <?php if(($_GET['sort_date'] ?? 'desc') === 'desc') echo 'selected'; ?>>Newest First</option>
                                     <option value="asc" <?php if(($_GET['sort_date'] ?? '') === 'asc') echo 'selected'; ?>>Oldest First</option>
                                 </select>
+
                                 <label class="text-sm text-gray-700 ml-4 mr-2">Show:</label>
                                 <select name="filter" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
                                     <option value="">All Records</option>
                                     <option value="notes" <?php if(($_GET['filter'] ?? '') === 'notes') echo 'selected'; ?>>Notes Only</option>
                                     <option value="ot" <?php if(($_GET['filter'] ?? '') === 'ot') echo 'selected'; ?>>OT Only</option>
                                 </select>
+
                                 <?php if (!empty($selected_intern_id)): ?>
                                     <input type="hidden" name="intern_id" value="<?php echo htmlspecialchars($selected_intern_id); ?>">
                                 <?php endif; ?>

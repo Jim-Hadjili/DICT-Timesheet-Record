@@ -817,6 +817,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
+// Update the timesheet query
+$sort_date = $_GET['sort_date'] ?? 'desc';
+$filter = $_GET['filter'] ?? '';
+$month = $_GET['month'] ?? '';
+
+$timesheet_query = "SELECT t.*, 
+                   t.record_id as id,
+                   i.Intern_School as intern_school, 
+                   i.Required_Hours_Rendered as required_hours, 
+                   DATE(t.created_at) as render_date,
+                   t.notes as note
+                   FROM timesheet t 
+                   JOIN interns i ON t.intern_id = i.Intern_id 
+                   WHERE t.intern_id = :intern_id";
+
+// Add month filter if selected
+if (!empty($month)) {
+    $timesheet_query .= " AND DATE_FORMAT(t.created_at, '%Y-%m') = :month";
+}
+
+// Add other filters
+if ($filter === 'notes') {
+    $timesheet_query .= " AND t.notes IS NOT NULL AND t.notes != ''";
+} elseif ($filter === 'ot') {
+    $timesheet_query .= " AND t.overtime_hours IS NOT NULL AND t.overtime_hours != '00:00:00'";
+}
+
+// Add sorting
+$timesheet_query .= " ORDER BY t.created_at " . ($sort_date === 'asc' ? 'ASC' : 'DESC');
+
+// Prepare and execute with month parameter if needed
+$timesheet_stmt = $conn->prepare($timesheet_query);
+$timesheet_stmt->bindParam(':intern_id', $selected_intern_id);
+if (!empty($month)) {
+    $timesheet_stmt->bindParam(':month', $month);
+}
+$timesheet_stmt->execute();
+
 // Helper function to record overtime end and calculate hours
 function recordOvertimeEnd($conn, $intern_id, $current_date, $end_time, $start_time) {
     // Record the overtime end time
@@ -1037,5 +1075,22 @@ if($current_time >= $five_pm &&
    !isTimeEmpty($current_timesheet['pm_timein']) && 
    isTimeEmpty($current_timesheet['pm_timeout'])) {
     $overtime_enabled = true;
+}
+
+// Function to get available months for the intern in category filter
+function getAvailableMonths($conn, $intern_id) {
+    $query = "SELECT DISTINCT DATE_FORMAT(created_at, '%Y-%m') as month_year, 
+                             DATE_FORMAT(created_at, '%M %Y') as month_display
+              FROM timesheet 
+              WHERE intern_id = :intern_id 
+              ORDER BY month_year DESC";
+    
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':intern_id', $intern_id);
+    $stmt->execute();
+    
+    $months = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Only return months if there is 1 or more
+    return count($months) > 0 ? $months : [];
 }
 ?>
