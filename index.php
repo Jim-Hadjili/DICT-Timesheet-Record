@@ -255,7 +255,7 @@ $has_active_pause = false;
                             </span>
                             <i class="fas fa-chevron-right"></i>
                         </a>
-                        <a href="#" class="flex items-center justify-between w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
+                        <a href="#" onclick="openFaceRecognitionModal(); return false;" class="flex items-center justify-between w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
                             <span class="flex items-center">
                                 <i class="fas fa-camera mr-2"></i>
                                 Face Scanner
@@ -848,6 +848,7 @@ $has_active_pause = false;
     include './components/modals/overtime-modal.php';
     include './components/modals/pause-modal.php';
     include './components/modals/notes-modal.php';
+    include './components/modals/face-recognition-modal.php';
     ?>
     
 </body>
@@ -855,4 +856,5 @@ $has_active_pause = false;
 <script src="./assets/js/overtime.js"></script>
 <script src="./assets/js/pause.js"></script>
 <script src="./assets/js/notes.js"></script>
+<script src="./assets/js/face-recognition-modal.js"></script>
 </html>
