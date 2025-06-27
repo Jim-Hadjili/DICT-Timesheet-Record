@@ -313,13 +313,31 @@ try {
         
         <!-- Alert Messages -->
         <?php if($message != ""): ?>
-        <div id="alert-message" class="mb-6 rounded-lg p-4 <?php echo strpos($message, 'successfully') !== false ? 'bg-green-100 text-green-800 border-l-4 border-green-500' : 'bg-red-100 text-red-800 border-l-4 border-red-500'; ?> transition-all duration-500 ease-in-out shadow-md">
-            <div class="flex items-center">
-                <i class="<?php echo strpos($message, 'successfully') !== false ? 'fas fa-check-circle text-green-500' : 'fas fa-exclamation-circle text-red-500'; ?> mr-2 text-xl"></i>
-                <p class="font-medium"><?php echo $message; ?></p>
-            </div>
-        </div>
-        <?php endif; ?>
+        <div id="alert-message" class="mb-6 rounded-lg p-4 
+    <?php 
+    if(strpos($message, 'successfully') !== false) {
+        echo 'bg-green-100 text-green-800 border-l-4 border-green-500';
+    } elseif(strpos($message, 'complete') !== false || strpos($message, 'finalized') !== false) {
+        echo 'bg-blue-100 text-blue-800 border-l-4 border-blue-500';
+    } else {
+        echo 'bg-red-100 text-red-800 border-l-4 border-red-500';
+    } 
+    ?> transition-all duration-500 ease-in-out shadow-md">
+    <div class="flex items-center">
+        <i class="
+        <?php 
+        if(strpos($message, 'successfully') !== false) {
+            echo 'fas fa-check-circle text-green-500';
+        } elseif(strpos($message, 'complete') !== false || strpos($message, 'finalized') !== false) {
+            echo 'fas fa-info-circle text-blue-500';
+        } else {
+            echo 'fas fa-exclamation-circle text-red-500';
+        } 
+        ?> mr-2 text-xl"></i>
+        <p class="font-medium"><?php echo $message; ?></p>
+    </div>
+</div>
+<?php endif; ?>
                 
         <!-- Main Content Area -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
