@@ -39,6 +39,16 @@
                     $overtime_active = true;
                 }
                 
+                // Check if intern already did overtime today (completed overtime)
+                $overtime_completed_today = false;
+                if (!empty($selected_intern_id) && 
+                    isset($current_timesheet) && 
+                    $current_timesheet && 
+                    !isTimeEmpty($current_timesheet['overtime_start']) && 
+                    !isTimeEmpty($current_timesheet['overtime_end'])) {
+                    $overtime_completed_today = true;
+                }
+
                 if ($overtime_active): ?>
                 <div class="bg-amber-100 p-4 rounded-lg border-l-4 border-amber-500 mb-4">
                     <p class="text-amber-800 font-medium flex items-center">
@@ -51,17 +61,49 @@
                     </p>
                 </div>
                 <?php endif; ?>
+
+                <?php if ($overtime_completed_today): ?>
+                <div class="bg-blue-100 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
+                    <p class="text-blue-800 font-medium flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Overtime Already Completed Today
+                    </p>
+                    <p class="text-sm text-blue-700 mt-1">
+                        You've already completed overtime hours today from 
+                        <?php echo formatTime($current_timesheet['overtime_start']); ?> to 
+                        <?php echo formatTime($current_timesheet['overtime_end']); ?>.
+                        Only one overtime session is allowed per day.
+                    </p>
+                </div>
+                <?php endif; ?>
                 
                 <form method="post" action="index.php" id="overtime-form">
                     <input type="hidden" name="intern_id" value="<?php echo $selected_intern_id; ?>">
                     <input type="hidden" name="overtime" value="1">
                     
-                    <div class="space-y-4 mt-4 <?php echo $overtime_active ? 'opacity-50' : ''; ?>">
+                    <?php 
+                    // Check if current time is before 5 PM
+                    $current_time = date('H:i');
+                    $is_before_5pm = $current_time < '17:00';
+                    
+                    if ($is_before_5pm): ?>
+                    <div class="bg-red-100 p-4 rounded-lg border-l-4 border-red-500 mb-4">
+                        <p class="text-red-800 font-medium flex items-center">
+                            <i class="fas fa-clock mr-2"></i>
+                            Overtime Not Available Yet
+                        </p>
+                        <p class="text-sm text-red-700 mt-1">
+                            Overtime options become available after 5:00 PM. Current time: <?php echo date('h:i A'); ?>
+                        </p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <div class="space-y-4 mt-4 <?php echo ($overtime_active || $is_before_5pm || $overtime_completed_today) ? 'opacity-50' : ''; ?>">
                         <!-- Option 1: Start from 5:00 PM -->
                         <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 hover:shadow-md transition-all duration-200">
                             <div class="flex items-start">
                                 <label class="flex items-start cursor-pointer">
-                                    <input type="radio" name="overtime_option" id="start-from-5pm" value="default" class="mt-1 mr-3" checked <?php echo $overtime_active ? 'disabled' : ''; ?>>
+                                    <input type="radio" name="overtime_option" id="start-from-5pm" value="default" class="mt-1 mr-3" checked <?php echo ($overtime_active || $is_before_5pm || $overtime_completed_today) ? 'disabled' : ''; ?>>
                                     <div>
                                         <h4 class="font-medium text-amber-800">Start from 5:00 PM</h4>
                                         <p class="text-sm text-gray-600 mt-1">Overtime will automatically begin at 5:00 PM and end when you time out.</p>
@@ -74,7 +116,7 @@
                         <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 hover:shadow-md transition-all duration-200">
                             <div class="flex items-start">
                                 <label class="flex items-start cursor-pointer">
-                                    <input type="radio" name="overtime_option" id="manual-time" value="manual" class="mt-1 mr-3" <?php echo $overtime_active ? 'disabled' : ''; ?>>
+                                    <input type="radio" name="overtime_option" id="manual-time" value="manual" class="mt-1 mr-3" <?php echo ($overtime_active || $is_before_5pm || $overtime_completed_today) ? 'disabled' : ''; ?>>
                                     <div class="w-full">
                                         <h4 class="font-medium text-amber-800">Specify Start Time</h4>
                                         <p class="text-sm text-gray-600 mt-1">Enter a specific time when overtime begins.</p>
@@ -88,7 +130,7 @@
                         <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 hover:shadow-md transition-all duration-200">
                             <div class="flex items-start">
                                 <label class="flex items-start cursor-pointer">
-                                    <input type="radio" name="overtime_option" id="manual-hours" value="hours" class="mt-1 mr-3" <?php echo $overtime_active ? 'disabled' : ''; ?>>
+                                    <input type="radio" name="overtime_option" id="manual-hours" value="hours" class="mt-1 mr-3" <?php echo ($overtime_active || $is_before_5pm || $overtime_completed_today) ? 'disabled' : ''; ?>>
                                     <div>
                                         <h4 class="font-medium text-amber-800">Enter Specific Hours</h4>
                                         <p class="text-sm text-gray-600 mt-1">Manually specify the total overtime duration.</p>
@@ -120,6 +162,16 @@
                 <button id="confirm-overtime" class="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium py-2 px-4 rounded-lg opacity-50 cursor-not-allowed" disabled>
                     <i class="fas fa-play mr-2"></i>
                     Overtime In Progress
+                </button>
+                <?php elseif ($overtime_completed_today): ?>
+                <button id="confirm-overtime" class="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium py-2 px-4 rounded-lg opacity-50 cursor-not-allowed" disabled>
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Overtime Already Completed
+                </button>
+                <?php elseif ($is_before_5pm): ?>
+                <button id="confirm-overtime" class="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium py-2 px-4 rounded-lg opacity-50 cursor-not-allowed" disabled>
+                    <i class="fas fa-clock mr-2"></i>
+                    Available After 5:00 PM
                 </button>
                 <?php else: ?>
                 <button id="confirm-overtime" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 ease-in-out">

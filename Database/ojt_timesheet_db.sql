@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 25, 2025 at 01:55 PM
+-- Generation Time: Jun 04, 2025 at 06:25 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,15 +39,6 @@ CREATE TABLE `interns` (
   `Face_Image_Path` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `interns`
---
-
-INSERT INTO `interns` (`Intern_id`, `Intern_Name`, `Intern_School`, `Intern_BirthDay`, `Intern_Age`, `Intern_Gender`, `Required_Hours_Rendered`, `Face_Registered`, `Face_Image_Path`) VALUES
-(6, 'Jim Hadjili', 'SCC', '2002-03-31', 23, 'Male', 240, 1, 'face_images/face_6_1747706724.png'),
-(7, 'edrftgyhujikolp', 'SCC', '2002-06-06', 22, 'Male', 240, 0, ''),
-(8, 'dfghyjuk', 'dfghjk', '2002-03-31', 23, 'Male', 240, 0, '');
-
 -- --------------------------------------------------------
 
 --
@@ -64,15 +55,6 @@ CREATE TABLE `intern_notes` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `intern_notes`
---
-
-INSERT INTO `intern_notes` (`id`, `intern_id`, `note_date`, `note_content`, `noted`, `created_at`, `updated_at`) VALUES
-(6, '', '0000-00-00', '', 0, '2025-05-20 16:24:26', '2025-05-20 16:24:36'),
-(10, '8', '2025-05-22', 'sfsdf', 0, '2025-05-22 16:16:30', '2025-05-22 16:16:30'),
-(11, '7', '2025-05-22', 's', 0, '2025-05-22 15:25:37', '2025-05-22 15:25:37');
-
 -- --------------------------------------------------------
 
 --
@@ -88,6 +70,20 @@ CREATE TABLE `pause_history` (
   `pause_duration` time DEFAULT NULL,
   `pause_reason` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `id` int(11) NOT NULL,
+  `setting_key` varchar(50) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -120,19 +116,36 @@ CREATE TABLE `timesheet` (
   `pause_end` time DEFAULT '00:00:00',
   `pause_duration` time DEFAULT '00:00:00',
   `pause_reason` text DEFAULT NULL,
-  `notes` text DEFAULT NULL
+  `notes` text DEFAULT NULL,
+  `photo_data` longtext DEFAULT NULL,
+  `photo_timestamp` timestamp NULL DEFAULT NULL,
+  `photo_type` varchar(20) DEFAULT 'timein',
+  `am_timein_photo` varchar(255) DEFAULT NULL,
+  `am_timeout_photo` varchar(255) DEFAULT NULL,
+  `pm_timein_photo` varchar(255) DEFAULT NULL,
+  `pm_timeout_photo` varchar(255) DEFAULT NULL,
+  `am_timein_image` varchar(255) DEFAULT NULL,
+  `am_timeout_image` varchar(255) DEFAULT NULL,
+  `pm_timein_image` varchar(255) DEFAULT NULL,
+  `pm_timeout_image` varchar(255) DEFAULT NULL,
+  `am_standard_end` time DEFAULT NULL,
+  `pm_standard_end` time DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `timesheet`
+-- Table structure for table `timesheet_photos`
 --
 
-INSERT INTO `timesheet` (`record_id`, `intern_id`, `intern_name`, `am_timein`, `am_timein_display`, `am_timeOut`, `pm_timein`, `pm_timeout`, `am_hours_worked`, `pm_hours_worked`, `required_hours_rendered`, `day_total_hours`, `total_hours_rendered`, `created_at`, `confirm_overtime`, `overtime_start`, `overtime_hours`, `overtime_end`, `overtime_manual`, `pause_start`, `pause_end`, `pause_duration`, `pause_reason`, `notes`) VALUES
-(64, 8, 'dfghyjuk', '00:00:00.000000', NULL, '00:00:00.000000', '16:15:55.000000', '16:15:57.000000', '00:00:00.000000', '00:00:02.000000', 240, '00:00:02.000000', '00:00:02.000000', '2025-05-22 16:15:55', 0, '17:00:00.000000', '00:00:00.000000', '00:00:00.000000', 0, '00:00:00', '00:00:00', '00:00:00', NULL, NULL),
-(75, 8, 'dfghyjuk', '00:00:00.000000', '00:00:00', '00:00:00.000000', '14:32:22.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 240, '00:00:00.000000', '00:00:00.000000', '2025-05-23', 0, '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 0, '00:00:00', '00:00:00', '00:00:00', NULL, NULL),
-(77, 7, 'edrftgyhujikolp', '00:00:00.000000', '00:00:00', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 240, '00:00:00.000000', '00:00:00.000000', '2025-05-25', 0, '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 0, '00:00:00', '00:00:00', '00:00:00', NULL, NULL),
-(80, 8, 'dfghyjuk', '00:00:00.000000', '00:00:00', '00:00:00.000000', '18:55:31.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 240, '00:00:00.000000', '00:00:00.000000', '2025-05-25', 0, '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 0, '18:55:33', '00:00:00', '00:00:00', '', NULL),
-(81, 6, 'Jim Hadjili', '00:00:00.000000', '00:00:00', '00:00:00.000000', '19:47:11.000000', '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 240, '00:00:00.000000', '00:00:00.000000', '2025-05-25', 0, '00:00:00.000000', '00:00:00.000000', '00:00:00.000000', 0, '00:00:00', '00:00:00', '00:00:00', NULL, NULL);
+CREATE TABLE `timesheet_photos` (
+  `id` int(11) NOT NULL,
+  `intern_id` int(11) NOT NULL,
+  `record_id` int(11) DEFAULT NULL,
+  `photo_path` varchar(255) NOT NULL,
+  `photo_type` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -159,10 +172,24 @@ ALTER TABLE `pause_history`
   ADD KEY `intern_id` (`intern_id`);
 
 --
+-- Indexes for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `setting_key` (`setting_key`);
+
+--
 -- Indexes for table `timesheet`
 --
 ALTER TABLE `timesheet`
   ADD PRIMARY KEY (`record_id`);
+
+--
+-- Indexes for table `timesheet_photos`
+--
+ALTER TABLE `timesheet_photos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `intern_id` (`intern_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -172,25 +199,37 @@ ALTER TABLE `timesheet`
 -- AUTO_INCREMENT for table `interns`
 --
 ALTER TABLE `interns`
-  MODIFY `Intern_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `Intern_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `intern_notes`
 --
 ALTER TABLE `intern_notes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pause_history`
 --
 ALTER TABLE `pause_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `timesheet`
 --
 ALTER TABLE `timesheet`
-  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `timesheet_photos`
+--
+ALTER TABLE `timesheet_photos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -201,6 +240,12 @@ ALTER TABLE `timesheet`
 --
 ALTER TABLE `pause_history`
   ADD CONSTRAINT `pause_history_ibfk_1` FOREIGN KEY (`intern_id`) REFERENCES `interns` (`Intern_id`);
+
+--
+-- Constraints for table `timesheet_photos`
+--
+ALTER TABLE `timesheet_photos`
+  ADD CONSTRAINT `timesheet_photos_ibfk_1` FOREIGN KEY (`intern_id`) REFERENCES `interns` (`Intern_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

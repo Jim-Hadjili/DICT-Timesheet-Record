@@ -1,112 +1,58 @@
+// Notes functionality
+function openNoteModal(internId, noteDate, hasNote, noteContent, noteId) {
+  // Format the date for display
+  const dateObj = new Date(noteDate + "T00:00:00");
+  const formattedDate = dateObj.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Set the modal title
+  document.getElementById("note-modal-title").textContent = hasNote
+    ? "View/Edit Note"
+    : "Add Note";
+
+  // Set form values
+  document.getElementById("note-intern-id").value = internId;
+  document.getElementById("note-date").value = noteDate;
+  document.getElementById("note-date-display").textContent = formattedDate;
+  document.getElementById("note-content").value = hasNote ? noteContent : "";
+  document.getElementById("note-id").value = noteId;
+  document.getElementById("note-action").value = "save";
+
+  // Show/hide delete button
+  document
+    .getElementById("delete-note-btn")
+    .classList.toggle("hidden", !hasNote);
+
+  // Show the modal
+  document.getElementById("note-modal").classList.remove("hidden");
+}
+
+function closeNoteModal() {
+  document.getElementById("note-modal").classList.add("hidden");
+}
+
+function deleteNote() {
+  if (
+    confirm(
+      "Are you sure you want to delete this note? This action cannot be undone."
+    )
+  ) {
+    document.getElementById("note-action").value = "delete";
+    document.getElementById("note-form").submit();
+  }
+}
+
+// Close modal when clicking outside
 document.addEventListener("DOMContentLoaded", function () {
-  const notesModal = document.getElementById("notes-modal");
-  const closeNotesModal = document.getElementById("close-notes-modal");
-  const cancelNote = document.getElementById("cancel-note");
-  const saveNote = document.getElementById("save-note");
-  const deleteNote = document.getElementById("delete-note");
-  const noteForm = document.getElementById("note-form");
-  const noteAction = document.getElementById("note-action");
-  const notesModalTitle = document.getElementById("notes-modal-title");
-  const saveNoteText = document.getElementById("save-note-text");
-  const noteContent = document.getElementById("note-content");
-  const timesheetId = document.getElementById("timesheet-id");
-  const noteDate = document.getElementById("note-date");
-  const noteInternName = document.getElementById("note-intern-name");
+  const modal = document.getElementById("note-modal");
 
-  // Add click event to all note buttons
-  document.querySelectorAll(".note-button").forEach((button) => {
-    button.addEventListener("click", function () {
-      const note = this.getAttribute("data-note");
-      const date = this.getAttribute("data-date");
-      const id = this.getAttribute("data-note-id");
-      const internName = this.getAttribute("data-intern-name"); // Get intern name from data attribute
-
-      // Set the timesheet ID
-      timesheetId.value = id;
-
-      // Set the date and intern name in the modal
-      noteDate.textContent = date;
-      noteInternName.textContent = internName; // Set intern name in the modal
-
-      // Check if this is an existing note or a new one
-      if (note && note !== "") {
-        // Existing note - view/edit mode
-        notesModalTitle.textContent = "View Note";
-        noteContent.value = note;
-        noteAction.value = "update";
-        saveNoteText.textContent = "Update Note";
-        deleteNote.classList.remove("hidden");
-      } else {
-        // New note
-        notesModalTitle.textContent = "Add Note";
-        noteContent.value = "";
-        noteAction.value = "add";
-        saveNoteText.textContent = "Save Note";
-        deleteNote.classList.add("hidden");
-      }
-
-      // Open the modal
-      notesModal.classList.remove("hidden");
-      document.body.classList.add("overflow-hidden");
-
-      // Focus the textarea
-      noteContent.focus();
-    });
-  });
-
-  // Close modal handlers
-  if (closeNotesModal) {
-    closeNotesModal.addEventListener("click", function () {
-      notesModal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
-    });
-  }
-
-  if (cancelNote) {
-    cancelNote.addEventListener("click", function () {
-      notesModal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
-    });
-  }
-
-  // Save/Update note
-  if (saveNote) {
-    saveNote.addEventListener("click", function () {
-      if (noteContent.value.trim() === "") {
-        showCustomAlert("Please enter a note before saving.", "warning");
-        return;
-      }
-
-      noteForm.submit();
-    });
-  }
-
-  // Delete note
-  if (deleteNote) {
-    deleteNote.addEventListener("click", function () {
-      if (confirm("Are you sure you want to delete this note?")) {
-        noteAction.value = "delete";
-        noteForm.submit();
-      }
-    });
-  }
-
-  // Close on overlay click
-  notesModal.addEventListener("click", function (e) {
-    if (
-      e.target === notesModal ||
-      e.target.classList.contains("modal-overlay")
-    ) {
-      notesModal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
+  window.onclick = function (event) {
+    if (event.target === modal) {
+      closeNoteModal();
     }
-  });
-
-  // Close on ESC key
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !notesModal.classList.contains("hidden")) {
-      notesModal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
-    }
-  });
+  };
 });
